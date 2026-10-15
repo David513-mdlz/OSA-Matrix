@@ -1,0 +1,750 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>OSA Matrix Reportes</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500&display=swap">
+<style>
+/* Layout: página negra con las cintas azul y naranja a la derecha (imagen de fondo), cabecera con el logo OSA Matrix junto a Mondelēz International, resumen de cifras, ruta de navegación y árbol de decisión horizontal con conectores animados */
+:root {
+  --night: #000000;
+  --navy: #004095;
+  --blue: #005BD8;
+  --sky: #3D8BFF;
+  --orange: #F07800;
+  --gold: #FEBF02;
+  --silver: #DCDCDC;
+  --ink: #F5F7FB;
+  --muted: #9AA7BC;
+  --line: rgba(220, 220, 220, .14);
+  --panel: rgba(4, 8, 18, .8);
+  --ac: var(--sky);
+  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html { background: var(--night); }
+body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: #000 url("bg.jpg") right top / cover no-repeat; }
+.top, .wrap { position: relative; z-index: 1; }
+
+/* Cabecera */
+.top { background: rgba(0, 0, 0, .6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top-in {
+  max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 12px max(16px, env(safe-area-inset-left, 0px)) 12px max(16px, env(safe-area-inset-right, 0px));
+}
+.brand { font-weight: 600; font-size: 18px; letter-spacing: .01em; color: #fff; line-height: 1.15; }
+.brand small { display: block; font-weight: 500; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--silver); opacity: .8; }
+.sep { width: 1px; height: 40px; background: rgba(255,255,255,.28); }
+.logo { display: block; height: 46px; width: auto; max-width: 100%; }
+.tag { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--silver); opacity: .75; }
+.stripe { height: 3px; background: linear-gradient(90deg, var(--navy) 0 58%, var(--blue) 58% 80%, var(--orange) 80% 92%, var(--gold) 92% 100%); }
+
+.wrap {
+  max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
+  padding-block: 28px 32px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* Introducción */
+.intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px 40px; flex-wrap: wrap; }
+.eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--orange); margin: 0 0 8px; }
+.intro h1 { font-family: var(--font-display); font-weight: 500; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -.01em; margin: 0 0 8px; text-wrap: balance; }
+.intro p { margin: 0; color: var(--muted); max-width: 60ch; }
+.kpis { display: flex; flex-wrap: wrap; row-gap: 12px; }
+.kpi { padding: 0 24px; border-left: 1px solid var(--line); }
+.kpi:first-child { padding-left: 0; border-left: 0; }
+.kpi:last-child { padding-right: 0; }
+.kpi b { display: block; font-family: var(--font-display); font-weight: 500; font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi span { display: block; margin-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+
+/* Ruta */
+.crumbs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 36px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 4px 0; }
+.crumbs .lbl { font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
+.crumbs .empty { color: var(--muted); }
+.crumbs .chev { color: var(--muted); padding: 0 2px; }
+.crumb { background: none; border: 0; font-weight: 600; cursor: pointer; padding: 5px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
+.crumb i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+.crumb:hover { background: rgba(255,255,255,.08); }
+.crumb.current { cursor: default; color: #fff; }
+.crumb.current:hover { background: none; }
+.reset { margin-left: auto; background: none; border: 1px solid var(--line); color: var(--ink); font-weight: 600; cursor: pointer; padding: 4px 14px; border-radius: 6px; font-size: 12px; }
+.reset:hover { border-color: var(--gold); color: var(--gold); }
+
+/* Árbol horizontal */
+.tree-card {
+  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  background: radial-gradient(520px 340px at 0% 50%, rgba(0, 64, 149, .32), transparent 72%), var(--panel);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.tree-scroll { overflow-x: auto; overflow-y: hidden; padding: 22px 24px 28px; scrollbar-width: thin; scrollbar-color: rgba(61,139,255,.5) transparent; }
+.tree {
+  position: relative; display: grid; grid-template-columns: repeat(5, minmax(180px, 1fr));
+  column-gap: clamp(36px, 4vw, 64px); min-width: 1100px; min-height: 540px;
+}
+.links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+.col { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; transition: opacity .5s ease; }
+.col.locked { opacity: 0; visibility: hidden; pointer-events: none; }
+
+.colhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; border-bottom: 2px solid var(--ac); padding-bottom: 7px; min-height: 58px; transition: border-color .4s; }
+.colhead.blank { border-bottom-color: transparent; }
+.colhead b { display: block; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
+.colhead .val { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); font-weight: 500; overflow-wrap: anywhere; }
+.colhead .q { display: block; margin-top: 2px; font-size: 13px; color: var(--gold); font-weight: 500; animation: ask 2.4s ease-in-out infinite; }
+.colhead .x { background: none; border: 0; cursor: pointer; color: var(--muted); font-size: 20px; line-height: 1; padding: 0 6px; border-radius: 6px; }
+.colhead .x:hover { color: #fff; background: rgba(255,255,255,.1); }
+@keyframes ask { 50% { opacity: .6; } }
+
+.nodes { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+
+.node, .report {
+  --c: #3D8BFF;
+  position: relative; display: block; width: 100%; text-align: left; text-decoration: none; color: var(--ink);
+  background: transparent; border: 0; border-radius: 8px; padding: 9px 10px 10px; cursor: pointer;
+  transform-origin: left center; transition: background .2s, opacity .25s;
+}
+.node:hover, .report:hover { background: rgba(255,255,255,.06); }
+.bar { display: block; height: 6px; border-radius: 2px; background: rgba(220,220,220,.14); overflow: hidden; }
+.bar i { display: block; height: 100%; border-radius: 2px; background: var(--c); transition: width .6s; }
+.name { display: block; margin-top: 7px; font-size: 13px; font-weight: 500; line-height: 1.35; color: color-mix(in srgb, var(--ink) 86%, transparent); overflow-wrap: anywhere; }
+.count { display: block; font-size: 12px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
+.node:hover .name, .report:hover .name { color: #fff; }
+.node.sel { background: color-mix(in srgb, var(--c) 13%, transparent); }
+.node.sel .name { color: #fff; font-weight: 600; }
+.node.sel .count { color: var(--ink); }
+.node.sel .bar { box-shadow: 0 0 10px color-mix(in srgb, var(--c) 55%, transparent); }
+.nodes.has-sel .node:not(.sel) { opacity: .5; }
+.nodes.has-sel .node:not(.sel):hover { opacity: 1; }
+.node.root { --c: #3D8BFF; cursor: default; }
+.node.root:hover { background: transparent; }
+.node.root .name { color: #fff; font-weight: 600; }
+
+.report { box-shadow: inset 0 0 0 1px var(--line); background: rgba(255,255,255,.04); transition: background .2s, box-shadow .2s, transform .2s; }
+.report .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.report .name { color: #fff; font-weight: 600; }
+.report .count { color: var(--gold); }
+.report .go { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--c); color: var(--c); transition: background .2s, color .2s; }
+.report:hover .go { background: var(--c); color: #000; }
+.report .go svg { width: 14px; height: 14px; }
+.report:hover { box-shadow: inset 0 0 0 1px var(--c); transform: translateY(-1px); }
+
+.ping .bar i { animation: ping .9s ease-out; }
+@keyframes ping { 0% { filter: brightness(1.8) drop-shadow(0 0 8px var(--c)); } 100% { filter: none; } }
+
+/* Red de conexiones */
+.lk { fill: none; stroke: rgba(220,220,220,.2); stroke-width: 1.3; }
+.lk.on { stroke-width: 2.2; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor); }
+.flow { fill: none; stroke: var(--silver); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 1 20; opacity: .7; animation: dash 1.6s linear infinite, show .4s ease .9s backwards; }
+@keyframes dash { to { stroke-dashoffset: -21; } }
+@keyframes show { from { opacity: 0; } }
+
+/* Secciones */
+.sec { display: flex; flex-direction: column; gap: 14px; }
+.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 28px; flex-wrap: wrap; }
+.sec-head h2 { font-family: var(--font-display); font-weight: 500; font-size: 28px; line-height: 1.1; margin: 0; }
+.sec-head p { margin: 4px 0 0; color: var(--muted); }
+.legend { display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; }
+.legend .lbl { font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.lg { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--silver); }
+.lg i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+
+/* Reportes */
+.rtoggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; cursor: pointer;
+  padding: 18px 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: border-color .2s, background .2s;
+}
+.rtoggle:hover { border-color: rgba(61, 139, 255, .65); background: rgba(8, 16, 34, .85); }
+.rt-text { min-width: 0; }
+.rt-title { display: block; font-family: var(--font-display); font-weight: 500; font-size: 28px; line-height: 1.1; }
+.rt-desc { display: block; margin-top: 4px; color: var(--muted); }
+.rt-meta { display: flex; align-items: center; gap: 14px; flex: none; }
+.rt-n { font-family: var(--font-display); font-weight: 500; font-size: 32px; line-height: 1; font-variant-numeric: tabular-nums; }
+.rt-chev { transition: transform .25s; color: var(--muted); }
+.rtoggle[aria-expanded="true"] .rt-chev { transform: rotate(180deg); }
+
+.rpanel {
+  border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px 26px; display: flex; flex-direction: column; gap: 16px;
+  background: var(--panel); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+}
+.rtools { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+.search {
+  flex: 1 1 260px; min-width: 0; max-width: 380px; padding: 9px 12px; font: inherit; color: var(--ink);
+  background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 8px;
+}
+.search::placeholder { color: var(--muted); }
+.rfilters { display: flex; gap: 8px; flex-wrap: wrap; }
+.fchip {
+  --c: var(--silver); cursor: pointer; background: none; border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px; color: var(--silver);
+}
+.fchip i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+.fchip:hover { border-color: var(--c); }
+.fchip[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); color: #fff; }
+.rcount { font-size: 12px; color: var(--muted); }
+
+.rgroup + .rgroup { margin-top: 22px; }
+.rgroup h3 {
+  display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line);
+  font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ink);
+}
+.rgroup h3 em { font-style: normal; color: var(--muted); font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; }
+.rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 10px; }
+.rcard {
+  min-width: 0; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit;
+  border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: rgba(255,255,255,.04);
+  transition: border-color .2s, background .2s, transform .2s;
+}
+.rcard:hover { border-color: var(--silver); background: rgba(255,255,255,.08); transform: translateY(-1px); }
+.rtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.rtop b { font-weight: 600; color: #fff; overflow-wrap: anywhere; }
+.rtop svg { flex: none; width: 15px; height: 15px; margin-top: 3px; color: var(--muted); }
+.rcard:hover .rtop svg { color: #fff; }
+.rsub { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.ptags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.ptag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; color: #fff; background: color-mix(in srgb, var(--c) 20%, transparent); }
+.ptag i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+.rempty { color: var(--muted); padding: 8px 0; }
+
+.swipe { display: none; text-align: center; font-size: 12px; color: var(--muted); }
+.foot { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); }
+
+.toast {
+  position: fixed; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 5;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--gold); color: #000;
+  padding: 10px 16px; border-radius: 8px; font-weight: 600; max-width: min(92vw, 470px);
+  transition: opacity .2s, transform .2s;
+}
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+
+@media (max-width: 1140px) {
+  .tag { display: none; }
+  .swipe { display: block; }
+  .tree-scroll { padding: 16px 16px 22px; }
+}
+@media (max-width: 700px) {
+  .bg { opacity: .55; }
+  .logo { height: 38px; }
+  .sep { height: 34px; }
+}
+@media (max-width: 560px) {
+  .kpi { padding: 0 16px; }
+  .kpi b { font-size: 30px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<div class="bg" aria-hidden="true"></div>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">Mondelēz<small>International</small></div>
+    <div class="sep"></div>
+    <img class="logo" src="logo.png" alt="OSA Matrix" width="285" height="132">
+    <div class="tag">Snacking made better</div>
+  </div>
+  <div class="stripe"></div>
+</header>
+
+<main class="wrap">
+  <section class="intro">
+    <div>
+      <p class="eyebrow">Directorio de reportes</p>
+      <h1>Reportes OSA por área y proceso</h1>
+      <p>Avance de área a proceso y subproceso hasta llegar al dashboard en Power BI. Cada selección despliega el siguiente nivel.</p>
+    </div>
+    <div class="kpis" id="kpis"></div>
+  </section>
+
+  <section class="sec" aria-labelledby="h-areas">
+    <div class="sec-head">
+      <div>
+        <h2 id="h-areas">Áreas</h2>
+        <p>Seleccione un área para desplegar sus procesos, subprocesos y reportes.</p>
+      </div>
+      <div class="legend" id="legend" aria-label="Colores por proceso"></div>
+    </div>
+
+    <nav class="crumbs" id="crumbs" aria-label="Ruta seleccionada"></nav>
+
+    <div class="tree-card" aria-label="Árbol de reportes">
+      <div class="tree-scroll" id="scroll">
+        <div class="tree" id="tree"></div>
+      </div>
+    </div>
+    <div class="swipe">Deslice hacia la derecha para seguir la ruta →</div>
+  </section>
+
+  <section class="sec" aria-label="Todos los reportes">
+    <button class="rtoggle" id="rtoggle" aria-expanded="false" aria-controls="rpanel">
+      <span class="rt-text">
+        <span class="rt-title">Reportes</span>
+        <span class="rt-desc">Listado completo, con búsqueda y filtro por proceso.</span>
+      </span>
+      <span class="rt-meta">
+        <span class="rt-n" id="rn"></span>
+        <svg class="rt-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+      </span>
+    </button>
+
+    <div class="rpanel" id="rpanel" hidden>
+      <div class="rtools">
+        <input class="search" id="rsearch" type="search" placeholder="Buscar por reporte, área o subproceso" aria-label="Buscar reportes" autocomplete="off">
+        <div class="rfilters" id="rfilters" role="group" aria-label="Filtrar por proceso"></div>
+      </div>
+      <div class="rcount" id="rcount" aria-live="polite"></div>
+      <div id="rlist"></div>
+    </div>
+  </section>
+
+  <div class="foot">Mondelēz International</div>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+<div class="sr" id="sr" aria-live="polite"></div>
+
+<script>
+/* ============ ENLACES POWER BI ============
+   Por ahora todos los reportes abren el enlace de prueba (DEFAULT_URL).
+   Para dar a un reporte su propio dashboard, agréguelo en URLS con el nombre exacto. */
+var DEFAULT_URL = "https://app.powerbi.com/reportEmbed?reportId=45752fa0-9d16-4727-9d63-ade4ad432a44&autoAuth=true&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7";
+var URLS = {
+  // "CMI reports (In Stocks)": "https://app.powerbi.com/...",
+};
+
+/* ============ DATOS (tabla completa) ============
+   [Área, Subproceso, Proceso, Reporte]
+   Proceso: O = Operativo, S = Estratégico, A = Analítico, P = Proyectos.
+   Dos letras (por ejemplo "OS") significan que el reporte aparece en ambos procesos. */
+var ROWS = [
+  ["CS&L", "Customer Management Inventory", "O", "CMI reports (In Stocks)"],
+  ["CS&L", "Orders", "O", "CS&L Order To Bill & Quiebre & CFR"],
+
+  ["Demand", "S&OE", "O", "Pacing (SO KPIs of Comparable Customers)"],
+  ["Demand", "S&OE", "O", "S&OE – EY"],
+  ["Demand", "Trade Stocks", "O", "Stock Analysis"],
+  ["Demand", "Trade Stocks", "S", "Trade stock weekly"],
+  ["Demand", "Demand Review", "S", "SFA & SFB SI"],
+  ["Demand", "Demand Review", "S", "Sanity Check"],
+  ["Demand", "Demand Review", "S", "SFA & SFB SO"],
+
+  ["Marketing", "Business Drivers", "S", "NPDs Strategic (o9)"],
+
+  ["RGM", "Elasticity", "O", "Elasticity Tracker – RGM"],
+  ["RGM", "Performance", "O", "RGM Battleship"],
+
+  ["Sales", "Business Drivers", "A", "Coverage"],
+  ["Sales", "Business Drivers", "O", "NPDs Subchain"],
+  ["Sales", "Business Drivers", "O", "TT Exhibidores"],
+  ["Sales", "Business Drivers", "OS", "MSL Dashboard"],
+  ["Sales", "Business Drivers", "S", "NPDs Comercial"],
+  ["Sales", "Business Drivers", "S", "Share of Market (Cencosud)"],
+  ["Sales", "Business Drivers", "S", "NPDs"],
+  ["Sales", "Self-Services", "O", "Architect SI"],
+  ["Sales", "Self-Services", "O", "Architect SISO"],
+  ["Sales", "Self-Services", "O", "Architect SO"],
+  ["Sales", "Commercial Quota", "O", "Avance Sell In – CAM"],
+  ["Sales", "Commercial Quota", "O", "KPIs Diario y Mensual · CAM y AMEX"],
+  ["Sales", "Commercial Quota", "OA", "FastView · CAM+DR y AMEX+PR"],
+  ["Sales", "Commercial Quota", "OA", "Daily Sales Performance MT"],
+  ["Sales", "Commercial Quota", "S", "Daily SI Wacam"],
+  ["Sales", "Business Overview", "OA", "Histórico SI&SO"],
+  ["Sales", "Business Overview", "S", "Business Review (Strategic Meetings)"],
+  ["Sales", "Business Overview", "S", "360° Country"],
+  ["Sales", "Productivity", "O", "Reporte Operativo Pacífico"],
+  ["Sales", "Productivity", "OA", "Daily Sales Performance TT"],
+  ["Sales", "Peru", "P", "Speed Tracker Perú"],
+  ["Sales", "Ecuador", "P", "EC Royal Tracker"],
+  ["Sales", "Sales", "O", "Histórico SI – FS"],
+  ["Sales", "Sales", "S", "Daily SI vs IBP"],
+  ["Sales", "Sales", "S", "Daily SO vs IBP"],
+  ["Sales", "Sales", "SA", "Executive SO"],
+
+  ["OSA Process", "SISO Coverage", "O", "Wacam Parameters / SISO Coverage"],
+  ["OSA Process", "Extrapolate", "A", "Extrapolado Tracker"],
+  ["OSA Process", "Usage Report", "O", "Indicadores de USO de OSA Matrix"],
+  ["OSA Process", "Tickets OSA Assist", "O", "Ticketera OSA"]
+];
+
+var PROC = { operative: "Operativo", strategic: "Estratégico", analytical: "Analítico", projects: "Proyectos" };
+var PCODE = { O: "operative", S: "strategic", A: "analytical", P: "projects" };
+var PORDER = ["operative", "strategic", "analytical", "projects"];
+/* Las áreas usan un solo tono neutro: el color queda reservado para identificar el proceso */
+var AREA_COLORS = ["#9DB4D6"];
+var PCOLOR = { operative: "#3D8BFF", strategic: "#FEBF02", analytical: "#F07800", projects: "#A07CE6" };
+
+function slug(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, "-"); }
+var AREAS = (function () {
+  var list = [], byName = {};
+  ROWS.forEach(function (r) {
+    var a = byName[r[0]];
+    if (!a) {
+      a = { id: slug(r[0]), name: r[0], color: AREA_COLORS[list.length % AREA_COLORS.length], all: {}, procs: {} };
+      byName[r[0]] = a; list.push(a);
+    }
+    a.all[r[3]] = 1;
+    r[2].split("").forEach(function (ch) {
+      var pid = PCODE[ch];
+      var p = a.procs[pid] || (a.procs[pid] = { id: pid, subs: [], byName: {} });
+      var s = p.byName[r[1]];
+      if (!s) { s = { name: r[1], reports: [] }; p.byName[r[1]] = s; p.subs.push(s); }
+      s.reports.push({ name: r[3], url: URLS[r[3]] || DEFAULT_URL });
+    });
+  });
+  list.forEach(function (a) {
+    a.processes = PORDER.filter(function (id) { return a.procs[id]; }).map(function (id) { return a.procs[id]; });
+  });
+  return list;
+})();
+
+/* ============ ESTADO ============ */
+var BASE = "#3D8BFF";
+var COLS = ["root", "area", "proc", "sub", "report"];
+var sel = { area: null, proc: null, sub: null };
+var linkSeen = {};
+var kb = false;
+var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var NS = "http://www.w3.org/2000/svg";
+var ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>';
+
+function cnt(subs) { return subs.reduce(function (n, s) { return n + s.reports.length; }, 0); }
+function areaCount(a) { return Object.keys(a.all).length; }
+function getArea() { return AREAS.find(function (a) { return a.id === sel.area; }) || null; }
+function getProc() { var a = getArea(); return a ? a.processes.find(function (p) { return p.id === sel.proc; }) || null : null; }
+function getSub() { var p = getProc(); return p ? p.subs.find(function (s) { return s.name === sel.sub; }) || null : null; }
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function maxOf(arr) { return Math.max.apply(null, arr.concat([1])); }
+
+/* Cifras de resumen */
+(function () {
+  var total = AREAS.reduce(function (n, a) { return n + areaCount(a); }, 0);
+  var subs = {};
+  ROWS.forEach(function (r) { subs[r[0] + "|" + r[1]] = 1; });
+  document.getElementById("kpis").innerHTML =
+    '<div class="kpi"><b>' + total + '</b><span>Reportes</span></div>' +
+    '<div class="kpi"><b>' + AREAS.length + '</b><span>Áreas</span></div>' +
+    '<div class="kpi"><b>' + Object.keys(subs).length + '</b><span>Subprocesos</span></div>';
+})();
+
+/* ============ ESTRUCTURA ============ */
+var tree = document.getElementById("tree");
+var scroller = document.getElementById("scroll");
+tree.innerHTML = '<svg class="links" id="links" aria-hidden="true"></svg>' + COLS.map(function (k) {
+  return '<div class="col locked" data-key="' + k + '"><div class="colhead"></div><div class="nodes"></div></div>';
+}).join("");
+var svg = document.getElementById("links");
+function colEl(k) { return tree.querySelector('.col[data-key="' + k + '"]'); }
+
+function model() {
+  var a = getArea(), p = getProc(), s = getSub();
+  var total = AREAS.reduce(function (n, x) { return n + areaCount(x); }, 0);
+  var m = {};
+  m.root = { open: true, blank: true, nodes: [{ kind: "root", key: "root", name: "Total reportes", count: total, max: total, color: BASE }] };
+
+  var maxA = maxOf(AREAS.map(areaCount));
+  m.area = { open: true, label: "Área", q: "¿De qué área es el reporte?", val: a ? a.name : "", clear: !!a,
+    nodes: AREAS.map(function (x) { return { kind: "node", col: "area", id: x.id, key: "area:" + x.id, name: x.name, count: areaCount(x), max: maxA, color: x.color, selected: !!a && a.id === x.id }; }) };
+
+  m.proc = { open: !!a, label: "Proceso", q: "¿Qué tipo de proceso es?", val: p ? PROC[p.id] : "", clear: !!p, nodes: [] };
+  if (a) {
+    var maxP = maxOf(a.processes.map(function (x) { return cnt(x.subs); }));
+    m.proc.nodes = a.processes.map(function (x) { return { kind: "node", col: "proc", id: x.id, key: "proc:" + a.id + "/" + x.id, name: PROC[x.id], count: cnt(x.subs), max: maxP, color: PCOLOR[x.id], selected: !!p && p.id === x.id }; });
+  }
+
+  m.sub = { open: !!p, label: "Subproceso", q: "¿Cuál subproceso?", val: s ? s.name : "", clear: !!s, nodes: [] };
+  if (p) {
+    var maxS = maxOf(p.subs.map(function (x) { return x.reports.length; }));
+    m.sub.nodes = p.subs.map(function (x) { return { kind: "node", col: "sub", id: x.name, key: "sub:" + a.id + "/" + p.id + "/" + x.name, name: x.name, count: x.reports.length, max: maxS, color: PCOLOR[p.id], selected: !!s && s.name === x.name }; });
+  }
+
+  m.report = { open: !!s, label: "Reporte", q: "Elija uno para abrir su dashboard", val: "", clear: false, nodes: [] };
+  if (s) {
+    m.report.nodes = s.reports.map(function (r, i) { return { kind: "report", idx: i, key: "rep:" + a.id + "/" + p.id + "/" + s.name + "/" + r.name, name: r.name, url: r.url, color: PCOLOR[p.id] }; });
+  }
+  return m;
+}
+
+function nodeHTML(n) {
+  var st = "--c:" + n.color;
+  var pct = Math.max(7, Math.round((n.count || 0) / (n.max || 1) * 100));
+  if (n.kind === "report") {
+    return '<a class="report" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '" href="' + (n.url ? esc(n.url) : "#") + '" target="_blank" rel="noopener">' +
+      '<span class="bar"><i style="width:100%"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="count">Abrir en Power BI</span></span><span class="go">' + ARROW + '</span></span></a>';
+  }
+  var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
+  if (n.kind === "root") return '<div class="node root" data-key="root" style="' + st + '">' + inner + '</div>';
+  return '<button class="node' + (n.selected ? " sel" : "") + '" data-col="' + n.col + '" data-id="' + esc(n.id) + '" data-key="' + esc(n.key) + '" style="' + st + '" aria-pressed="' + !!n.selected + '">' + inner + '</button>';
+}
+
+function crumbsHTML(a, p, s) {
+  var h = '<span class="lbl">Ruta</span>';
+  if (!a) return h + '<span class="empty">Seleccione un área para comenzar</span>';
+  var parts = [
+    { t: a.name, go: "proc", cur: !p, c: a.color },
+    p ? { t: PROC[p.id], go: "sub", cur: !s, c: PCOLOR[p.id] } : null,
+    s ? { t: s.name, go: "", cur: true, c: PCOLOR[p.id] } : null
+  ].filter(Boolean);
+  h += parts.map(function (x, i) {
+    return (i ? '<span class="chev">›</span>' : "") +
+      (x.cur ? '<span class="crumb current" style="--c:' + x.c + '"><i></i>' + esc(x.t) + "</span>"
+             : '<button class="crumb" style="--c:' + x.c + '" data-clear="' + x.go + '"><i></i>' + esc(x.t) + "</button>");
+  }).join("");
+  return h + '<button class="reset" id="reset">Reiniciar</button>';
+}
+
+function render(focusCol) {
+  var m = model();
+  var a = getArea(), p = getProc(), s = getSub();
+  tree.style.setProperty("--ac", p ? PCOLOR[p.id] : (a ? a.color : BASE));
+
+  COLS.forEach(function (k) {
+    var c = m[k], el = colEl(k);
+    el.classList.toggle("locked", !c.open);
+    var head = el.querySelector(".colhead");
+    head.classList.toggle("blank", !!c.blank);
+    var h = "";
+    if (c.open && !c.blank) {
+      h = "<div><b>" + c.label + "</b>" + (c.val ? '<span class="val">' + esc(c.val) + "</span>" : '<span class="q">' + c.q + "</span>") + "</div>" +
+        (c.clear ? '<button class="x" data-clear="' + k + '" aria-label="Quitar ' + c.label + '">×</button>' : "");
+    }
+    head.innerHTML = h;
+    var nodes = el.querySelector(".nodes");
+    nodes.classList.toggle("has-sel", !!c.val);
+    nodes.innerHTML = c.open ? c.nodes.map(nodeHTML).join("") : "";
+  });
+
+  document.getElementById("crumbs").innerHTML = crumbsHTML(a, p, s);
+  document.getElementById("sr").textContent = !a ? m.area.q : !p ? m.proc.q : !s ? m.sub.q : "Reportes disponibles: " + s.reports.length;
+
+  requestAnimationFrame(function () { drawLinks(true); });
+  if (focusCol) setTimeout(function () { revealCol(focusCol); }, 140);
+  if (kb && focusCol) {
+    var f = colEl(focusCol).querySelector(".node:not(.root), .report");
+    if (f) f.focus({ preventScroll: true });
+  }
+}
+
+/* Desplaza de lado para que la columna nueva quede a la vista */
+function revealCol(k) {
+  var el = colEl(k);
+  if (!el || scroller.scrollWidth <= scroller.clientWidth + 2) return;
+  var left = el.offsetLeft, right = left + el.offsetWidth, target = scroller.scrollLeft;
+  if (right + 24 > scroller.scrollLeft + scroller.clientWidth) target = right + 24 - scroller.clientWidth;
+  else if (left - 24 < scroller.scrollLeft) target = Math.max(0, left - 24);
+  scroller.scrollTo({ left: target, behavior: reduce ? "auto" : "smooth" });
+}
+
+/* ============ CONECTORES, BROTES Y PULSOS ============ */
+function pos(el) {
+  var x = 0, y = 0;
+  while (el && el !== tree) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
+  return { x: x, y: y };
+}
+function mk(tag, attrs) {
+  var e = document.createElementNS(NS, tag);
+  for (var k in attrs) e.setAttribute(k, attrs[k]);
+  return e;
+}
+
+var pulses = [], raf = 0;
+function ping(el) { el.classList.remove("ping"); void el.offsetWidth; el.classList.add("ping"); }
+function sendPulse(path, len, delay, dur, target) {
+  var g = mk("g", { opacity: 0 });
+  g.appendChild(mk("circle", { r: 8, fill: "#FEBF02", "fill-opacity": .18 }));
+  g.appendChild(mk("circle", { r: 3, fill: "#FEBF02" }));
+  svg.appendChild(g);
+  pulses.push({ path: path, len: len, t0: performance.now() + delay, dur: dur, g: g, target: target });
+  if (!raf) raf = requestAnimationFrame(tick);
+}
+function tick(now) {
+  pulses = pulses.filter(function (p) {
+    if (!p.path.isConnected) { p.g.remove(); return false; }
+    var t = (now - p.t0) / p.dur;
+    if (t < 0) return true;
+    if (t >= 1) { p.g.remove(); if (p.target && p.target.isConnected) ping(p.target); return false; }
+    var e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+    var pt = p.path.getPointAtLength(p.len * e);
+    p.g.setAttribute("transform", "translate(" + pt.x + " " + pt.y + ")");
+    p.g.setAttribute("opacity", 1);
+    return true;
+  });
+  raf = pulses.length ? requestAnimationFrame(tick) : 0;
+}
+
+function drawLinks(animate) {
+  svg.innerHTML = "";
+  pulses = [];
+  svg.setAttribute("viewBox", "0 0 " + tree.offsetWidth + " " + tree.offsetHeight);
+  var area = getArea(), nextSeen = {};
+  for (var i = 0; i < COLS.length - 1; i++) {
+    var pc = colEl(COLS[i]), cc = colEl(COLS[i + 1]);
+    if (cc.classList.contains("locked")) continue;
+    var parent = i === 0 ? pc.querySelector(".node.root") : pc.querySelector(".node.sel");
+    if (!parent) continue;
+    var pb = parent.querySelector(".bar"), pp = pos(parent);
+    var x1 = pp.x + pb.offsetLeft + pb.offsetWidth, y1 = pp.y + pb.offsetTop + pb.offsetHeight / 2;
+    var kids = cc.querySelectorAll(".node, .report");
+    var dots = [], idx = 0;
+    kids.forEach(function (k) {
+      var kbar = k.querySelector(".bar"), kp = pos(k);
+      var x2 = kp.x + kbar.offsetLeft, y2 = kp.y + kbar.offsetTop + kbar.offsetHeight / 2;
+      var mx = (x1 + x2) / 2;
+      var d = "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2;
+      var chosen = k.classList.contains("sel") || k.classList.contains("report");
+      var color = k.style.getPropertyValue("--c") || (area ? area.color : BASE);
+      var key = (parent.dataset.key || "") + ">" + k.dataset.key;
+      var isNew = !linkSeen[key];
+      nextSeen[key] = 1;
+      var delay = idx * 80;
+
+      var path = mk("path", { d: d, class: "lk" + (chosen ? " on" : "") });
+      if (chosen) { path.setAttribute("stroke", color); path.style.color = color; }
+      svg.appendChild(path);
+      var len = path.getTotalLength();
+      var grow = animate && isNew && !reduce;
+      if (grow) {
+        path.animate([{ strokeDasharray: len + " " + len, strokeDashoffset: len }, { strokeDasharray: len + " " + len, strokeDashoffset: 0 }],
+          { duration: 760, delay: delay, easing: "cubic-bezier(.4,0,.2,1)", fill: "backwards" });
+        /* el nodo nuevo brota desde el nodo elegido */
+        k.animate([{ opacity: 0, transform: "translate(" + (x1 - x2) + "px," + (y1 - y2) + "px) scale(.5)" }, { opacity: 1, transform: "none" }],
+          { duration: 780, delay: delay, easing: "cubic-bezier(.2,.9,.25,1.08)", fill: "backwards" });
+        sendPulse(path, len, delay, 760, k);
+      }
+      if (chosen && !reduce) svg.appendChild(mk("path", { d: d, class: "flow" }));
+      dots.push({ x: x2, y: y2, color: color, chosen: chosen, delay: delay, grow: grow });
+      idx++;
+    });
+    svg.appendChild(mk("circle", { cx: x1, cy: y1, r: 3.5, fill: i === 0 ? BASE : (area ? area.color : BASE) }));
+    dots.forEach(function (o) {
+      var c = mk("circle", { cx: o.x, cy: o.y, r: o.chosen ? 3.5 : 2.8, fill: o.chosen ? o.color : "#05070D", stroke: o.chosen ? "none" : "#DCDCDC", "stroke-opacity": .45, "stroke-width": 1.1 });
+      svg.appendChild(c);
+      if (o.grow) c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay: o.delay + 520, fill: "backwards" });
+    });
+  }
+  linkSeen = nextSeen;
+}
+
+/* ============ EVENTOS ============ */
+var toastTimer;
+function toast(msg) {
+  var t = document.getElementById("toast");
+  t.textContent = msg; t.classList.add("show");
+  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3400);
+}
+
+document.addEventListener("keydown", function () { kb = true; });
+document.addEventListener("pointerdown", function () { kb = false; });
+
+document.addEventListener("click", function (e) {
+  var clr = e.target.closest("[data-clear]");
+  if (clr) {
+    var k = clr.dataset.clear;
+    if (k === "area") { sel.area = null; sel.proc = null; sel.sub = null; }
+    if (k === "proc") { sel.proc = null; sel.sub = null; }
+    if (k === "sub") { sel.sub = null; }
+    render(k); return;
+  }
+  if (e.target.closest("#reset")) {
+    sel.area = sel.proc = sel.sub = null; render("area"); return;
+  }
+  var rep = e.target.closest("[data-report]");
+  if (rep) {
+    var r = getSub().reports[+rep.dataset.report];
+    if (!r.url) { e.preventDefault(); toast("Falta el enlace de Power BI de “" + r.name + "”. Se agrega en la lista URLS al inicio del código."); }
+    return;
+  }
+  var n = e.target.closest(".node[data-col]");
+  if (!n) return;
+  var col = n.dataset.col, id = n.dataset.id, next = "proc";
+  if (col === "area") { sel.area = id; sel.proc = null; sel.sub = null; next = "proc"; }
+  if (col === "proc") { sel.proc = id; sel.sub = null; next = "sub"; }
+  if (col === "sub") { sel.sub = id; next = "report"; }
+  render(next);
+});
+
+function redraw() { requestAnimationFrame(function () { drawLinks(false); }); }
+window.addEventListener("resize", redraw);
+if (window.ResizeObserver) new ResizeObserver(redraw).observe(tree);
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+
+render();
+
+/* ============ LEYENDA DE PROCESOS ============ */
+document.getElementById("legend").innerHTML = '<span class="lbl">Procesos</span>' + PORDER.map(function (id) {
+  return '<span class="lg" style="--c:' + PCOLOR[id] + '"><i></i>' + PROC[id] + "</span>";
+}).join("");
+
+/* ============ LISTADO DE REPORTES ============ */
+var REPORTS = (function () {
+  var list = [], by = {};
+  ROWS.forEach(function (r) {
+    var x = by[r[3]];
+    if (!x) { x = { name: r[3], area: r[0], subs: [], procs: [] }; by[r[3]] = x; list.push(x); }
+    if (x.subs.indexOf(r[1]) < 0) x.subs.push(r[1]);
+    r[2].split("").forEach(function (ch) { var id = PCODE[ch]; if (x.procs.indexOf(id) < 0) x.procs.push(id); });
+  });
+  list.forEach(function (x) { x.procs.sort(function (a, b) { return PORDER.indexOf(a) - PORDER.indexOf(b); }); });
+  return list;
+})();
+var rf = { q: "", proc: "" };
+document.getElementById("rn").textContent = REPORTS.length;
+
+function reportCard(x) {
+  var url = URLS[x.name] || DEFAULT_URL;
+  return '<a class="rcard" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+    '<span class="rtop"><b>' + esc(x.name) + "</b>" + ARROW + "</span>" +
+    '<span class="rsub">' + esc(x.subs.join(" · ")) + "</span>" +
+    '<span class="ptags">' + x.procs.map(function (id) {
+      return '<span class="ptag" style="--c:' + PCOLOR[id] + '"><i></i>' + PROC[id] + "</span>";
+    }).join("") + "</span></a>";
+}
+
+function renderFilters() {
+  var opts = [{ id: "", t: "Todos", c: "#DCDCDC" }].concat(PORDER.map(function (id) { return { id: id, t: PROC[id], c: PCOLOR[id] }; }));
+  document.getElementById("rfilters").innerHTML = opts.map(function (o) {
+    return '<button class="fchip" data-f="' + o.id + '" style="--c:' + o.c + '" aria-pressed="' + (rf.proc === o.id) + '"><i></i>' + o.t + "</button>";
+  }).join("");
+}
+
+function renderReports() {
+  var q = rf.q.trim().toLowerCase();
+  var shown = REPORTS.filter(function (x) {
+    if (rf.proc && x.procs.indexOf(rf.proc) < 0) return false;
+    return !q || (x.name + " " + x.area + " " + x.subs.join(" ")).toLowerCase().indexOf(q) >= 0;
+  });
+  var html = "";
+  AREAS.forEach(function (a) {
+    var items = shown.filter(function (x) { return x.area === a.name; });
+    if (!items.length) return;
+    html += '<section class="rgroup"><h3><span>' + esc(a.name) + "</span><em>" + items.length + '</em></h3><div class="rgrid">' + items.map(reportCard).join("") + "</div></section>";
+  });
+  document.getElementById("rlist").innerHTML = html || '<p class="rempty">Ningún reporte coincide con la búsqueda.</p>';
+  document.getElementById("rcount").textContent = "Mostrando " + shown.length + " de " + REPORTS.length + " reportes";
+  renderFilters();
+}
+
+document.getElementById("rtoggle").addEventListener("click", function () {
+  var panel = document.getElementById("rpanel"), open = panel.hidden;
+  panel.hidden = !open;
+  this.setAttribute("aria-expanded", open);
+  if (open) {
+    renderReports();
+    setTimeout(function () { panel.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" }); }, 60);
+  }
+});
+document.getElementById("rsearch").addEventListener("input", function () { rf.q = this.value; renderReports(); });
+document.getElementById("rfilters").addEventListener("click", function (e) {
+  var b = e.target.closest("[data-f]");
+  if (!b) return;
+  rf.proc = b.dataset.f; renderReports();
+});
+renderReports();
+</script>
+
+</body></html>
