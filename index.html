@@ -914,7 +914,7 @@ document.getElementById("rn").textContent = REPORTS.length;
 function reportCard(x) {
   var url = URLS[x.name] || "";   /* sin enlace → tarjeta inactiva */
   /* Se abre en pestaña nueva (target="_blank"). Sin enlace no lleva href y se marca con la clase "nolink" */
-  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" target="_blank" rel="noopener"' : '') + '>' +
+  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" rel="noopener"' : '') + '>' +
     '<span class="rtop"><b>' + esc(x.name) + "</b>" + ARROW + "</span>" +
     '<span class="rsub">' + esc(x.subs.join(" · ")) + "</span>" +
     '<span class="ptags">' + x.procs.map(function (id) {
