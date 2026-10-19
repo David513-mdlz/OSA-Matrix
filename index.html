@@ -10,13 +10,13 @@
          .lower    Fondo azul noche: sección "Áreas" (ruta + árbol de decisión)
          .repband  Banda morada: sección "Reportes" (listado con búsqueda/filtros)
          .footband Pie negro: lema a la izquierda y la X (bg.jpg) a la derecha
-         .toast    Aviso flotante (aparece si falta un enlace)
     3) <script> → la lógica: datos de los reportes, árbol interactivo,
                   líneas conectoras animadas y listado con filtros.
 
   CAMBIOS FRECUENTES (dónde tocar):
     • Agregar/quitar/renombrar un reporte ........ lista ROWS (en <script>)
-    • Poner el enlace de Power BI de un reporte .. objeto URLS (en <script>)
+    • Poner el enlace de Power BI de un reporte .. objeto URLS (en <script>); sin enlace el reporte no hace nada
+    • Los reportes abren en la misma pestaña (ver comentario en "ENLACES POWER BI")
     • Cambiar colores de marca ................... variables :root (en <style>)
     • Cambiar el fondo de la banda de Reportes ... CSS ".repband" (al final del <style>)
     • Cambiar textos fijos (títulos, descripciones) . en el HTML, busque el texto
@@ -269,15 +269,6 @@ button { font: inherit; color: inherit; }
 /* Texto del pie ("Juntos somos imparables / Mondelēz International"); su banda se define más abajo en ".footband" */
 .foot { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); }
 
-/* ".toast": aviso emergente inferior (p. ej. "Falta el enlace de Power BI...") */
-.toast {
-  position: fixed; left: 50%; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; z-index: 5;
-  bottom: calc(18px + env(safe-area-inset-bottom, 0px)); background: var(--gold); color: #000;
-  padding: 10px 16px; border-radius: 8px; font-weight: 600; max-width: min(92vw, 470px);
-  transition: opacity .2s, transform .2s;
-}
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
-
 /* ===== RESPONSIVE: ajustes por tamaño de pantalla (tablet ≤1060px, móvil ≤700px y ≤560px) ===== */
 @media (max-width: 1060px) {
   .tag { display: none; }
@@ -376,6 +367,12 @@ button { font: inherit; color: inherit; }
   padding: 36px max(16px, env(safe-area-inset-left, 0px)) calc(36px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
 .footband .foot { text-align: left; }
 @media (max-width: 700px) { .foot-in { min-height: 120px; padding-top: 28px; padding-bottom: 28px; } }
+
+/* Reportes SIN enlace ("nolink"): cursor normal, sin efecto de elevación y flecha atenuada, para que se note que no abren nada */
+.report.nolink, .rcard.nolink { cursor: default; }
+.report.nolink:hover, .rcard.nolink:hover { transform: none; }
+.nolink .go, .nolink .rtop svg { opacity: .3; }
+.report.nolink:hover .go { background: transparent; color: var(--c); }
 </style>
 
 <!-- ===== PORTADA (.hero): fondo negro liso (sin cintas) + cabecera + título + cifras + eslogan ===== -->
@@ -448,7 +445,7 @@ button { font: inherit; color: inherit; }
     <button class="rtoggle" id="rtoggle" aria-expanded="false" aria-controls="rpanel">
       <span class="rt-text">
         <span class="rt-title">Reportes</span>
-        <span class="rt-desc">Listado completo, con búsqueda y filtro por leyenda.</span>
+        <span class="rt-desc">Listado completo, con búsqueda y filtro por área.</span>
       </span>
       <span class="rt-meta">
         <span class="rt-n" id="rn"></span>
@@ -482,20 +479,64 @@ button { font: inherit; color: inherit; }
   </div>
 </footer>
 
-<!-- Aviso flotante (toast) y región para lectores de pantalla (accesibilidad) -->
-<div class="toast" id="toast" role="status"></div>
+<!-- Región para lectores de pantalla (accesibilidad) -->
 <div class="sr" id="sr" aria-live="polite"></div>
 
 <!-- ===== LÓGICA (JavaScript) ===== -->
 <script>
 /* ============ ENLACES POWER BI ============
-   Por ahora todos los reportes abren el enlace de prueba (DEFAULT_URL).
-   Para dar a un reporte su propio dashboard, agréguelo en URLS con el nombre exacto.
-   Ejemplo:  "MSL Dashboard": "https://app.powerbi.com/...",   (nombre igual al de ROWS, coma al final)
-   Si un reporte no está en URLS usa DEFAULT_URL. */
-var DEFAULT_URL = "https://app.powerbi.com/reportEmbed?reportId=45752fa0-9d16-4727-9d63-ade4ad432a44&autoAuth=true&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7";
+   URLS = enlace de cada reporte, escrito con el NOMBRE EXACTO que tiene en ROWS (mayúsculas, tildes y símbolos incluidos).
+   • Los enlaces se abren en la MISMA pestaña (la página se redirige a Power BI). Para abrirlos en una pestaña nueva,
+     agregue  target="_blank" rel="noopener"  en las dos funciones que arman los enlaces: nodeHTML() y reportCard().
+   • Un reporte que NO esté en URLS (o tenga "") queda sin enlace: se ve en la lista pero no hace nada al pulsarlo.
+   • PARA AGREGAR/CAMBIAR un enlace:  "Nombre del reporte": "https://app.powerbi.com/...",   (con coma al final)
+   • No existe un enlace general por defecto: cada reporte usa solo el suyo. */
 var URLS = {
-  // "CMI reports (In Stocks)": "https://app.powerbi.com/...",
+  "Coverage": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=28e58488-1122-410f-b3ea-97749ca4f8d3&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Share of Market (Cencosud)": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0ee8b148-9d1b-458a-ab46-c3e82ab5d528&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "NPDs": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=33a0686f-0fc1-4616-ba11-c852351684dc&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Daily Sales Performance MT": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=650b35cf-3c20-4b03-bcce-3d5277405b0a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Daily SI Wacam": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=c64cfb90-3b40-44a6-8b12-37b608a65399&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Histórico SI&SO": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=606cbbbc-1c71-4fd8-8ade-3717ea27a15e&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "360° Country": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=ab55aa07-6c2b-41ec-a161-86762e0f8162&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Daily Sales Performance TT": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=db6fc5c6-65a8-427b-91ae-193e16fdfa98&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Daily SI vs IBP": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=e7b41cde-7ba2-4344-801c-8990ac9563c5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Daily SO vs IBP": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0c49df27-24fc-4ab4-b966-e289c930583b&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "CS&L Order To Bill & Quiebre & CFR": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=888f2221-9278-4880-89c6-aac1ea918073&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Stock Analysis": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=831e30c7-7cf5-47ff-8a03-4cbb8d05c727&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Trade stock weekly": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=de5c1396-3b0a-4ddc-979e-7d9e632b7569&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "SFA & SFB SI": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=2660a294-c03e-4b85-a75e-9a7169f3ff60&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "Sanity Check": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=24db24df-5bef-44c8-a0d8-00ef48a0352a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+  "SFA & SFB SO": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=1d14f577-b18a-4afa-9d40-507a401fe3f5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
+
+  /* Reportes SIN enlace todavía (aparecen en la página pero no hacen nada al hacer clic).
+     Para activarlos: copie la línea, quite los // y pegue el enlace entre las comillas. */
+  // "NPDs Subchain": "",
+  // "TT Exhibidores": "",
+  // "MSL Dashboard": "",
+  // "NPDs Comercial": "",
+  // "EC Royal Tracker": "",
+  // "Speed Tracker Perú": "",
+  // "Architect SI": "",
+  // "Architect SISO": "",
+  // "Architect SO": "",
+  // "Avance Sell In – CAM": "",
+  // "KPIs Diario y Mensual · CAM y AMEX": "",
+  // "FastView · CAM+DR y AMEX+PR": "",
+  // "Business Review (Strategic Meetings)": "",
+  // "Reporte Operativo Pacífico": "",
+  // "Histórico SI – FS": "",
+  // "Executive SO": "",
+  // "CMI reports (In Stocks)": "",
+  // "Pacing (SO KPIs of Comparable Customers)": "",
+  // "S&OE – EY": "",
+  // "NPDs Strategic (o9)": "",
+  // "Elasticity Tracker – RGM": "",
+  // "RGM Battleship": "",
+  // "Wacam Parameters / SISO Coverage": "",
+  // "Extrapolado Tracker": "",
+  // "Indicadores de USO de OSA Matrix": "",
+  // "Ticketera OSA": "",
 };
 
 /* ============ DATOS (tabla actualizada) ============
@@ -572,7 +613,7 @@ var AREAS = (function () {
     if (!a) { a = { id: slug(r[0]), name: r[0], count: 0, subs: [], bySub: {} }; by[r[0]] = a; list.push(a); }
     var s = a.bySub[r[1]];
     if (!s) { s = { name: r[1], reports: [] }; a.bySub[r[1]] = s; a.subs.push(s); }
-    s.reports.push({ name: r[3], url: URLS[r[3]] || DEFAULT_URL, legend: r[2].split("").map(function (c) { return PCODE[c]; }) });
+    s.reports.push({ name: r[3], url: URLS[r[3]] || "", legend: r[2].split("").map(function (c) { return PCODE[c]; }) });
     a.count++;
   });
   list.forEach(function (a) { a.subs.sort(function (x, y) { return y.reports.length - x.reports.length; }); });
@@ -643,12 +684,12 @@ function model() {
 function legGrad(l) { var c = l.map(function (x) { return PCOLOR[x]; }); return c.length > 1 ? "linear-gradient(90deg," + c[0] + " 50%," + c[1] + " 50%)" : c[0]; }
 function legTags(l) { return l.map(function (x) { return '<span class="ptag" style="--c:' + PCOLOR[x] + '"><i></i>' + PROC[x] + "</span>"; }).join(""); }
 
-/* nodeHTML(): arma el HTML de un nodo: raíz, área/subproceso (botón) o reporte (enlace a Power BI) */
+/* nodeHTML(): arma el HTML de un nodo: raíz, área/subproceso (botón) o reporte (enlace a Power BI, misma pestaña; sin enlace queda inactivo con la clase "nolink") */
 function nodeHTML(n) {
   var st = "--c:" + n.color;
   var pct = Math.max(7, Math.round((n.count || 0) / (n.max || 1) * 100));
   if (n.kind === "report") {
-    return '<a class="report" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '" href="' + (n.url ? esc(n.url) : "#") + '" target="_blank" rel="noopener">' +
+    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '"' : '') + '>' +
       '<span class="bar"><i style="width:100%;background:' + legGrad(n.legend) + '"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="ptags">' + legTags(n.legend) + '</span></span><span class="go">' + ARROW + '</span></span></a>';
   }
   var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
@@ -806,13 +847,7 @@ function drawLinks(animate) {
 }
 
 /* ============ EVENTOS ============
-   toast() muestra el aviso | kb detecta navegación con teclado | el "click" global maneja: quitar selección (×), Reiniciar, abrir reportes y elegir área/subproceso */
-var toastTimer;
-function toast(msg) {
-  var t = document.getElementById("toast");
-  t.textContent = msg; t.classList.add("show");
-  clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.classList.remove("show"); }, 3400);
-}
+   kb detecta navegación con teclado | el "click" global maneja: quitar selección (×), Reiniciar, abrir reportes y elegir área/subproceso */
 
 document.addEventListener("keydown", function () { kb = true; });
 document.addEventListener("pointerdown", function () { kb = false; });
@@ -832,7 +867,7 @@ document.addEventListener("click", function (e) {
   var rep = e.target.closest("[data-report]");
   if (rep) {
     var r = getSub().reports[+rep.dataset.report];
-    if (!r.url) { e.preventDefault(); toast("Falta el enlace de Power BI de “" + r.name + "”. Se agrega en la lista URLS al inicio del código."); }
+    if (!r.url) e.preventDefault();   /* reporte sin enlace: no hace nada */
     return;
   }
   var n = e.target.closest(".node[data-col]");
@@ -866,8 +901,9 @@ var rf = { q: "", area: "" };
 document.getElementById("rn").textContent = REPORTS.length;
 
 function reportCard(x) {
-  var url = URLS[x.name] || DEFAULT_URL;
-  return '<a class="rcard" href="' + esc(url) + '" target="_blank" rel="noopener">' +
+  var url = URLS[x.name] || "";   /* sin enlace → tarjeta inactiva */
+  /* Se abre en la MISMA pestaña (sin target="_blank"). Sin enlace no lleva href y se marca con la clase "nolink" */
+  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '"' : '') + '>' +
     '<span class="rtop"><b>' + esc(x.name) + "</b>" + ARROW + "</span>" +
     '<span class="rsub">' + esc(x.subs.join(" · ")) + "</span>" +
     '<span class="ptags">' + x.procs.map(function (id) {
