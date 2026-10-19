@@ -487,7 +487,7 @@ button { font: inherit; color: inherit; }
 /* ============ ENLACES POWER BI ============
    URLS = enlace de cada reporte, escrito con el NOMBRE EXACTO que tiene en ROWS (mayúsculas, tildes y símbolos incluidos).
    • Los enlaces se abren en la MISMA pestaña (la página se redirige a Power BI). Para abrirlos en una pestaña nueva,
-     agregue  target="_blank" rel="noopener"  en las dos funciones que arman los enlaces: nodeHTML() y reportCard().
+     agregue  target="_top" rel="noopener"  en las dos funciones que arman los enlaces: nodeHTML() y reportCard().
    • Un reporte que NO esté en URLS (o tenga "") queda sin enlace: se ve en la lista pero no hace nada al pulsarlo.
    • PARA AGREGAR/CAMBIAR un enlace:  "Nombre del reporte": "https://app.powerbi.com/...",   (con coma al final)
    • No existe un enlace general por defecto: cada reporte usa solo el suyo. */
