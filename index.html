@@ -6,9 +6,10 @@
   Es UN SOLO archivo HTML con tres bloques:
     1) <style>  → todo el diseño (colores, tamaños, fondos, animaciones).
     2) HTML     → la estructura visible, de arriba a abajo:
-         .hero     Portada negra: cabecera + título + cifras + eslogan
+         .hero     Portada negra lisa: cabecera + título + cifras + eslogan
          .lower    Fondo azul noche: sección "Áreas" (ruta + árbol de decisión)
          .repband  Banda morada: sección "Reportes" (listado con búsqueda/filtros)
+         .footband Pie negro: lema a la izquierda y la X (bg.jpg) a la derecha
          .toast    Aviso flotante (aparece si falta un enlace)
     3) <script> → la lógica: datos de los reportes, árbol interactivo,
                   líneas conectoras animadas y listado con filtros.
@@ -20,7 +21,7 @@
     • Cambiar el fondo de la banda de Reportes ... CSS ".repband" (al final del <style>)
     • Cambiar textos fijos (títulos, descripciones) . en el HTML, busque el texto
   Imágenes externas que deben estar junto a este archivo:
-    bg.jpg (cintas de fondo), logo.png (OSA Matrix), slogan.png (eslogan).
+    bg.jpg (cintas/X del pie), logo.png (OSA Matrix), slogan.png (eslogan).
   =====================================================================
 -->
 <title>OSA Matrix Reportes</title>
@@ -57,9 +58,9 @@ button { font: inherit; color: inherit; }
 /* ".sr": texto solo para lectores de pantalla (invisible a la vista, accesibilidad) */
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* ".bg": imagen de fondo con las cintas azul y naranja. Va DENTRO de la portada (.hero). Para cambiarla, reemplace bg.jpg */
+/* ".bg": imagen de fondo con las cintas azul y naranja (la X). Ahora vive SOLO en el pie (.footband). Para cambiarla, reemplace bg.jpg */
 .bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: #000 url("bg.jpg") right center / cover no-repeat; }
-/* Deja cabecera y contenido por encima del fondo (.bg) */
+/* Deja cabecera y contenido por encima de las capas de fondo */
 .top, .wrap { position: relative; z-index: 1; }
 
 /* ===== CABECERA (.top): barra superior con marca Mondelēz + logo OSA Matrix + lema ===== */
@@ -192,15 +193,11 @@ button { font: inherit; color: inherit; }
 @keyframes dash { to { stroke-dashoffset: -21; } }
 @keyframes show { from { opacity: 0; } }
 
-/* ===== ENCABEZADO DE SECCIÓN "Áreas": título, descripción y leyenda de colores (la leyenda la genera JS) ===== */
+/* ===== ENCABEZADO DE SECCIÓN "Áreas": título y descripción ===== */
 .sec { display: flex; flex-direction: column; gap: 14px; }
 .sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 28px; flex-wrap: wrap; }
 .sec-head h2 { font-family: var(--font-display); font-weight: 500; font-size: 28px; line-height: 1.1; margin: 0; }
 .sec-head p { margin: 4px 0 0; color: var(--muted); }
-.legend { display: flex; align-items: center; gap: 6px 18px; flex-wrap: wrap; }
-.legend .lbl { font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
-.lg { display: inline-flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: var(--silver); }
-.lg i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
 
 /* ===== SECCIÓN REPORTES (componentes) =====
    .rtoggle = botón-banner "REPORTES 42" que abre/cierra el panel
@@ -227,7 +224,7 @@ button { font: inherit; color: inherit; }
   background: var(--panel); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
 }
 .rtools { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
-/* Caja de búsqueda y chips de filtro (Todos / Operativo / Estratégico / Analítico) */
+/* Caja de búsqueda y chips de filtro por área (Todos / Sales / Demand / ...; los chips los genera JS) */
 .search {
   flex: 1 1 260px; min-width: 0; max-width: 380px; padding: 9px 12px; font: inherit; color: var(--ink);
   background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 8px;
@@ -269,7 +266,7 @@ button { font: inherit; color: inherit; }
 
 /* Aviso "Deslice hacia la derecha": solo se ve en pantallas pequeñas (ver @media) */
 .swipe { display: none; text-align: center; font-size: 12px; color: var(--muted); }
-/* Pie de página con el lema */
+/* Texto del pie ("Juntos somos imparables / Mondelēz International"); su banda se define más abajo en ".footband" */
 .foot { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); }
 
 /* ".toast": aviso emergente inferior (p. ej. "Falta el enlace de Power BI...") */
@@ -323,9 +320,9 @@ button { font: inherit; color: inherit; }
 @media (max-width: 700px) { .slogan { flex-basis: 230px; width: 230px; margin: 0 auto; } }
 
 /* ===== TRANSICIÓN PORTADA → ÁREAS =====
-   .hero  = portada negra con corte diagonal abajo (clip-path). Cambie "44px" para más/menos inclinación
+   .hero  = portada negra lisa con corte diagonal abajo (clip-path). Cambie "44px" para más/menos inclinación
    .lower = fondo azul noche liso que sube 44px (margin-top negativo) para encajar con el corte diagonal
-   Cambio de sección: las cintas viven solo en la portada; debajo, un fondo azul noche liso con corte diagonal */
+   (Las cintas de bg.jpg ya no están en la portada: viven en el pie, ver ".footband"). Antes: las cintas viven solo en la portada; debajo, un fondo azul noche liso con corte diagonal */
 .hero { position: relative; z-index: 1; overflow: hidden; background: #000; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 44px), 0 100%); }
 .hero-in { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 36px max(16px, env(safe-area-inset-left, 0px)) 84px max(16px, env(safe-area-inset-right, 0px)); }
 .lower { position: relative; z-index: 0; margin-top: -44px; padding-top: 44px; background: linear-gradient(180deg, #0C1838 0, #08112A 340px, #060C1E 100%); border-top: 3px solid transparent; }
@@ -368,13 +365,21 @@ button { font: inherit; color: inherit; }
 .repband .rcard:hover { border-color: var(--gold); background: rgba(160, 124, 230, .14); }
 .repband .search { border-color: rgba(160, 124, 230, .3); }
 @media (max-width: 700px) { .rep-in { padding-top: 28px; } }
+
+/* ===== PIE (.footband) =====
+   Banda negra de ancho completo. La imagen de las cintas (.bg, bg.jpg) se pega a la derecha para que la X quede a ese lado.
+   .foot-in = contenedor centrado (mismo ancho que .wrap) con el texto a la izquierda; min-height controla la altura del pie.
+   Si la X queda cortada o muy grande/pequeña, ajuste "right center / cover" en la regla ".bg" (por ejemplo "right center / auto 100%"). */
+.footband { position: relative; z-index: 1; overflow: hidden; background: #000; }
+.footband .stripe { position: relative; z-index: 2; }
+.foot-in { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; min-height: 150px; display: flex; align-items: center;
+  padding: 36px max(16px, env(safe-area-inset-left, 0px)) calc(36px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
+.footband .foot { text-align: left; }
+@media (max-width: 700px) { .foot-in { min-height: 120px; padding-top: 28px; padding-bottom: 28px; } }
 </style>
 
-<!-- ===== PORTADA (.hero): fondo negro con cintas + cabecera + título + cifras + eslogan ===== -->
+<!-- ===== PORTADA (.hero): fondo negro liso (sin cintas) + cabecera + título + cifras + eslogan ===== -->
 <div class="hero">
-<!-- Imagen de fondo decorativa (bg.jpg) -->
-<div class="bg" aria-hidden="true"></div>
-
 <!-- Cabecera: marca Mondelēz | logo OSA Matrix | lema; debajo, la cinta de colores -->
 <header class="top">
   <div class="top-in">
@@ -407,15 +412,13 @@ button { font: inherit; color: inherit; }
 <div class="lower">
 <main class="wrap">
 
-  <!-- Bloque "Áreas": título, leyenda, ruta y árbol -->
+  <!-- Bloque "Áreas": título, ruta y árbol (la leyenda de colores ya no va aquí: se ve en cada reporte) -->
   <section class="sec" aria-labelledby="h-areas">
     <div class="sec-head">
       <div>
         <h2 id="h-areas">Áreas</h2>
         <p>Seleccione un área para desplegar sus subprocesos y reportes. Ordenadas de mayor a menor cantidad de reportes.</p>
       </div>
-      <!-- Leyenda de colores: la rellena JS desde PROC / PCOLOR -->
-      <div class="legend" id="legend" aria-label="Leyenda de colores"></div>
     </div>
 
     <!-- Ruta seleccionada (Área › Subproceso + botón Reiniciar), generada por JS -->
@@ -436,7 +439,7 @@ button { font: inherit; color: inherit; }
 </div>
 
 <!-- ===== SECCIÓN REPORTES (.repband): banda morada separada del gráfico de arriba =====
-     Estructura: cinta de colores → botón-banner "Reportes" (abre/cierra) → panel con buscador, filtros y listado → pie de página -->
+     Estructura: cinta de colores → botón-banner "Reportes" (abre/cierra) → panel con buscador, filtros por área y listado -->
 <div class="repband">
 <div class="stripe" aria-hidden="true"></div>
 <div class="rep-in">
@@ -456,18 +459,28 @@ button { font: inherit; color: inherit; }
     <!-- Panel desplegable (inicia oculto por "hidden"). Se abre con el botón de arriba -->
     <div class="rpanel" id="rpanel" hidden>
       <div class="rtools">
-        <!-- Buscador: filtra por reporte, área o subproceso; los chips (id="rfilters") filtran por tipo -->
+        <!-- Buscador: filtra por reporte, área o subproceso; los chips (id="rfilters") filtran por ÁREA -->
         <input class="search" id="rsearch" type="search" placeholder="Buscar por reporte, área o subproceso" aria-label="Buscar reportes" autocomplete="off">
-        <div class="rfilters" id="rfilters" role="group" aria-label="Filtrar por proceso"></div>
+        <div class="rfilters" id="rfilters" role="group" aria-label="Filtrar por área"></div>
       </div>
       <!-- "Mostrando X de Y reportes" y el listado agrupado por área (id="rlist"), ambos generados por JS -->
       <div class="rcount" id="rcount" aria-live="polite"></div>
       <div id="rlist"></div>
     </div>
   </section>
-  <div class="foot"><span class="slg">Juntos somos imparables</span><br>Mondelēz International</div>
 </div>
 </div>
+
+<!-- ===== PIE (.footband): banda negra con el lema a la izquierda y la imagen de la X (bg.jpg) a la derecha =====
+     Para cambiar el texto del pie edite el contenido de <div class="foot">. La imagen se cambia reemplazando bg.jpg -->
+<footer class="footband">
+  <div class="stripe" aria-hidden="true"></div>
+  <!-- Imagen decorativa con las cintas (la X). Se posiciona a la derecha por CSS (".footband .bg") -->
+  <div class="bg" aria-hidden="true"></div>
+  <div class="foot-in">
+    <div class="foot"><span class="slg">Juntos somos imparables</span><br>Mondelēz International</div>
+  </div>
+</footer>
 
 <!-- Aviso flotante (toast) y región para lectores de pantalla (accesibilidad) -->
 <div class="toast" id="toast" role="status"></div>
@@ -542,7 +555,7 @@ var ROWS = [
   ["OSA Process", "Tickets OSA Assist", "O", "Ticketera OSA"]
 ];
 
-/* PROC: nombre visible de cada tipo | PCODE: letra de ROWS → tipo | PORDER: orden en leyenda y filtros | PCOLOR: color de cada tipo */
+/* PROC: nombre visible de cada tipo | PCODE: letra de ROWS → tipo | PORDER: orden de las etiquetas de tipo | PCOLOR: color de cada tipo */
 var PROC = { operative: "Operativo", strategic: "Estratégico", analytical: "Analítico" };
 var PCODE = { O: "operative", S: "strategic", A: "analytical" };
 var PORDER = ["operative", "strategic", "analytical"];
@@ -838,15 +851,9 @@ if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
 
 render();
 
-/* ============ LEYENDA DE PROCESOS ============
-   Pinta la leyenda de colores (Operativo, Estratégico, Analítico) junto al título de Áreas */
-document.getElementById("legend").innerHTML = '<span class="lbl">Leyenda</span>' + PORDER.map(function (id) {
-  return '<span class="lg" style="--c:' + PCOLOR[id] + '"><i></i>' + PROC[id] + "</span>";
-}).join("");
-
 /* ============ LISTADO DE REPORTES (banda morada) ============
-   REPORTS = lista plana de todos los reportes | rf = filtros activos (texto y tipo)
-   reportCard() = HTML de cada tarjeta | renderFilters() = chips de filtro
+   REPORTS = lista plana de todos los reportes | rf = filtros activos (texto y área)
+   reportCard() = HTML de cada tarjeta | renderFilters() = chips de filtro por área (uno por cada área de AREAS)
    renderReports() = aplica búsqueda + filtro, agrupa por área y actualiza "Mostrando X de Y"
    El botón rtoggle abre/cierra el panel; el buscador y los chips llaman a renderReports() */
 var REPORTS = (function () {
@@ -854,7 +861,8 @@ var REPORTS = (function () {
   AREAS.forEach(function (a) { a.subs.forEach(function (s) { s.reports.forEach(function (r) { list.push({ name: r.name, area: a.name, subs: [s.name], procs: r.legend }); }); }); });
   return list;
 })();
-var rf = { q: "", proc: "" };
+/* rf.q = texto buscado | rf.area = nombre del área elegida ("" = todas) */
+var rf = { q: "", area: "" };
 document.getElementById("rn").textContent = REPORTS.length;
 
 function reportCard(x) {
@@ -867,17 +875,19 @@ function reportCard(x) {
     }).join("") + "</span></a>";
 }
 
+/* renderFilters(): "Todos" + un chip por cada área (en el orden de AREAS: de más a menos reportes).
+   Color de los chips de área: naranja (el mismo de "seleccionado" en el árbol). Cámbielo en "c". */
 function renderFilters() {
-  var opts = [{ id: "", t: "Todos", c: "#DCDCDC" }].concat(PORDER.map(function (id) { return { id: id, t: PROC[id], c: PCOLOR[id] }; }));
+  var opts = [{ id: "", t: "Todos", c: "#DCDCDC" }].concat(AREAS.map(function (a) { return { id: a.name, t: a.name, c: ORANGE }; }));
   document.getElementById("rfilters").innerHTML = opts.map(function (o) {
-    return '<button class="fchip" data-f="' + o.id + '" style="--c:' + o.c + '" aria-pressed="' + (rf.proc === o.id) + '"><i></i>' + o.t + "</button>";
+    return '<button class="fchip" data-f="' + esc(o.id) + '" style="--c:' + o.c + '" aria-pressed="' + (rf.area === o.id) + '"><i></i>' + esc(o.t) + "</button>";
   }).join("");
 }
 
 function renderReports() {
   var q = rf.q.trim().toLowerCase();
   var shown = REPORTS.filter(function (x) {
-    if (rf.proc && x.procs.indexOf(rf.proc) < 0) return false;
+    if (rf.area && x.area !== rf.area) return false;   /* filtro por área */
     return !q || (x.name + " " + x.area + " " + x.subs.join(" ")).toLowerCase().indexOf(q) >= 0;
   });
   var html = "";
@@ -904,7 +914,7 @@ document.getElementById("rsearch").addEventListener("input", function () { rf.q 
 document.getElementById("rfilters").addEventListener("click", function (e) {
   var b = e.target.closest("[data-f]");
   if (!b) return;
-  rf.proc = b.dataset.f; renderReports();
+  rf.area = b.dataset.f; renderReports();
 });
 renderReports();
 </script>
