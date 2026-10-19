@@ -486,8 +486,8 @@ button { font: inherit; color: inherit; }
 <script>
 /* ============ ENLACES POWER BI ============
    URLS = enlace de cada reporte, escrito con el NOMBRE EXACTO que tiene en ROWS (mayúsculas, tildes y símbolos incluidos).
-   • Los enlaces se abren en la MISMA pestaña (la página se redirige a Power BI). Para abrirlos en una pestaña nueva,
-     agregue  target="_top" rel="noopener"  en las dos funciones que arman los enlaces: nodeHTML() y reportCard().
+   • Los enlaces se abren en una PESTAÑA NUEVA (target="_blank" rel="noopener" en las dos funciones que arman los enlaces:
+     nodeHTML() y reportCard()). Para abrirlos en la misma pestaña, quite ese atributo en ambas.
    • Un reporte que NO esté en URLS (o tenga "") queda sin enlace: se ve en la lista pero no hace nada al pulsarlo.
    • PARA AGREGAR/CAMBIAR un enlace:  "Nombre del reporte": "https://app.powerbi.com/...",   (con coma al final)
    • No existe un enlace general por defecto: cada reporte usa solo el suyo. */
@@ -689,7 +689,7 @@ function nodeHTML(n) {
   var st = "--c:" + n.color;
   var pct = Math.max(7, Math.round((n.count || 0) / (n.max || 1) * 100));
   if (n.kind === "report") {
-    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '"' : '') + '>' +
+    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '" target="_blank" rel="noopener"' : '') + '>' +
       '<span class="bar"><i style="width:100%;background:' + legGrad(n.legend) + '"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="ptags">' + legTags(n.legend) + '</span></span><span class="go">' + ARROW + '</span></span></a>';
   }
   var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
@@ -902,8 +902,8 @@ document.getElementById("rn").textContent = REPORTS.length;
 
 function reportCard(x) {
   var url = URLS[x.name] || "";   /* sin enlace → tarjeta inactiva */
-  /* Se abre en la MISMA pestaña (sin target="_blank"). Sin enlace no lleva href y se marca con la clase "nolink" */
-  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '"' : '') + '>' +
+  /* Se abre en pestaña nueva (target="_blank"). Sin enlace no lleva href y se marca con la clase "nolink" */
+  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" target="_blank" rel="noopener"' : '') + '>' +
     '<span class="rtop"><b>' + esc(x.name) + "</b>" + ARROW + "</span>" +
     '<span class="rsub">' + esc(x.subs.join(" · ")) + "</span>" +
     '<span class="ptags">' + x.procs.map(function (id) {
