@@ -528,18 +528,14 @@ var URLS = {
   // "NPDs Comercial": "",
   // "EC Royal Tracker": "",
   // "Speed Tracker Perú": "",
- 
   // "Architect SISO": "",
- 
   // "Avance Sell In – CAM": "",
   // "KPIs Diario y Mensual · CAM y AMEX": "",
   // "FastView · CAM+DR y AMEX+PR": "",
   // "Business Review (Strategic Meetings)": "",
   // "Reporte Operativo Pacífico": "",
   // "Histórico SI – FS": "",
- 
   // "CMI reports (In Stocks)": "",
- 
   // "S&OE – EY": "",
   // "NPDs Strategic (o9)": "",
   // "Elasticity Tracker – RGM": "",
@@ -700,7 +696,7 @@ function nodeHTML(n) {
   var st = "--c:" + n.color;
   var pct = Math.max(7, Math.round((n.count || 0) / (n.max || 1) * 100));
   if (n.kind === "report") {
-    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '" target="_blank" rel="noopener"' : '') + '>' +
+    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '"  rel="noopener"' : '') + '>' +
       '<span class="bar"><i style="width:100%;background:' + legGrad(n.legend) + '"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="ptags">' + legTags(n.legend) + '</span></span><span class="go">' + ARROW + '</span></span></a>';
   }
   var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
@@ -914,7 +910,7 @@ document.getElementById("rn").textContent = REPORTS.length;
 function reportCard(x) {
   var url = URLS[x.name] || "";   /* sin enlace → tarjeta inactiva */
   /* Se abre en pestaña nueva (target="_blank"). Sin enlace no lleva href y se marca con la clase "nolink" */
-  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" rel="noopener"' : '') + '>' +
+  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" target="_blank" rel="noopener"' : '') + '>' +
     '<span class="rtop"><b>' + esc(x.name) + "</b>" + ARROW + "</span>" +
     '<span class="rsub">' + esc(x.subs.join(" · ")) + "</span>" +
     '<span class="ptags">' + x.procs.map(function (id) {
