@@ -491,8 +491,8 @@ button { font: inherit; color: inherit; }
 <script>
 /* ============ ENLACES POWER BI ============
    URLS = enlace de cada reporte, escrito con el NOMBRE EXACTO que tiene en ROWS (mayúsculas, tildes y símbolos incluidos).
-   • Los enlaces se abren en una PESTAÑA NUEVA (target="_blank" rel="noopener" en las dos funciones que arman los enlaces:
-     nodeHTML() y reportCard()). Para abrirlos en la misma pestaña, quite ese atributo en ambas.
+   • Los enlaces se abren en la MISMA PESTAÑA, reemplazando la ventana superior (target="_top" en las dos funciones que arman los enlaces:
+     nodeHTML() y reportCard()). Si Power BI bloquea la navegación, cambie target="_top" por target="_blank" en ambas.
    • Un reporte que NO esté en URLS (o tenga "") queda sin enlace: se ve en la lista pero no hace nada al pulsarlo.
    • PARA AGREGAR/CAMBIAR un enlace:  "Nombre del reporte": "https://app.powerbi.com/...",   (con coma al final)
    • No existe un enlace general por defecto: cada reporte usa solo el suyo. */
@@ -694,7 +694,7 @@ function nodeHTML(n) {
   var st = "--c:" + n.color;
   var pct = Math.max(7, Math.round((n.count || 0) / (n.max || 1) * 100));
   if (n.kind === "report") {
-    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '"  rel="noopener"' : '') + '>' +
+    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '" target="_top" rel="noopener"' : '') + '>' +
       '<span class="bar"><i style="width:100%;background:' + legGrad(n.legend) + '"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="ptags">' + legTags(n.legend) + '</span></span><span class="go">' + ARROW + '</span></span></a>';
   }
   var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
@@ -907,8 +907,8 @@ document.getElementById("rn").textContent = REPORTS.length;
 
 function reportCard(x) {
   var url = URLS[x.name] || "";   /* sin enlace → tarjeta inactiva */
-  /* Se abre en pestaña nueva (target="_blank"). Sin enlace no lleva href y se marca con la clase "nolink" */
-  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" rel="noopener"' : '') + '>' +
+  /* Se abre en la ventana superior (target="_top"). Sin enlace no lleva href y se marca con la clase "nolink" */
+  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" target="_top" rel="noopener"' : '') + '>' +
     '<span class="rtop"><b>' + esc(x.name) + "</b>" + ARROW + "</span>" +
     '<span class="rsub">' + esc(x.subs.join(" · ")) + "</span>" +
     '<span class="ptags">' + x.procs.map(function (id) {
@@ -959,44 +959,6 @@ document.getElementById("rfilters").addEventListener("click", function (e) {
 });
 renderReports();
 
-/* ============ ABRIR REPORTES DESDE EL EMBEBIDO DE POWER BI ============
-   Si la página está dentro de un marco (Power BI Apps), el clic normal puede cargar Power BI dentro del marco y este lo rechaza.
-   Aquí se intenta abrir SIEMPRE fuera del marco: 1) pestaña nueva, 2) ventana superior, 3) aviso con el enlace copiado.
-   Fuera del embebido (página abierta directamente) no cambia nada: el enlace funciona normal. */
-(function () {
-  var embedded = false;
-  try { embedded = window.top !== window.self; } catch (e) { embedded = true; }
-  if (!embedded) return;
-
-  var toast = document.createElement("div");
-  toast.className = "toast"; toast.hidden = true; toast.setAttribute("role", "status");
-  document.body.appendChild(toast);
-  var tmr;
-  function say(html) { toast.innerHTML = html; toast.hidden = false; clearTimeout(tmr); tmr = setTimeout(function () { toast.hidden = true; }, 12000); }
-
-  function copy(url) {
-    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(url); return true; } } catch (e) {}
-    try { var t = document.createElement("textarea"); t.value = url; t.style.position = "fixed"; t.style.opacity = "0"; document.body.appendChild(t); t.select(); var ok = document.execCommand("copy"); document.body.removeChild(t); return ok; } catch (e) {}
-    return false;
-  }
-
-  function openOutside(url) {
-    var w = null;
-    try { w = window.open(url, "_blank"); } catch (e) {}
-    if (w) { try { w.opener = null; } catch (e) {} return; }
-    var ok = copy(url);
-    say("<b>No se pudo abrir desde aquí.</b> " + (ok ? "El enlace quedó copiado: péguelo en una pestaña nueva." : "Copie este enlace y ábralo en una pestaña nueva:") +
-        (ok ? "" : '<input readonly value="' + url.replace(/"/g, "&quot;") + '">'));
-    try { window.top.location.href = url; } catch (e) {}
-  }
-
-  document.addEventListener("click", function (e) {
-    var a = e.target.closest ? e.target.closest("a.report[href], a.rcard[href]") : null;
-    if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
-    e.preventDefault();
-    openOutside(a.href);
-  });
-})();
 </script>
 
 </body></html>
