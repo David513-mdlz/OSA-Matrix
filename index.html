@@ -1,923 +1,885 @@
-<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<!doctype html>
+<html lang="es">
+<head>
 <!--
   =====================================================================
-  GUÍA GENERAL DEL ARCHIVO  (OSA Matrix · Reportes)
+  OSA MATRIX · REPORTES  —  guía del archivo
   =====================================================================
-  Es UN SOLO archivo HTML con tres bloques:
-    1) <style>  → todo el diseño (colores, tamaños, fondos, animaciones).
-    2) HTML     → la estructura visible, de arriba a abajo:
-         .hero     Portada negra lisa: cabecera + título + cifras + eslogan
-         .lower    Fondo azul noche: sección "Áreas" (ruta + árbol de decisión)
-         .repband  Banda morada: sección "Reportes" (listado con búsqueda/filtros)
-         .footband Pie negro: lema a la izquierda y la X (bg.jpg) a la derecha
-    3) <script> → la lógica: datos de los reportes, árbol interactivo,
-                  líneas conectoras animadas y listado con filtros.
+  UN SOLO archivo HTML con tres partes:
+    1) <style>   Diseño. Ordenado por secciones numeradas (variables, base, bandas, componentes, responsive).
+    2) HTML      Estructura, de arriba abajo:
+                   .hero      portada: cabecera + título + cifras + eslogan
+                   .lower     secciones "Áreas" y "Colaborations OSA": ruta + árbol cada una
+                   .repband   sección "Reportes": listado con búsqueda y filtros
+                   .footband  pie: lema + imagen de la X
+    3) <script>  Datos y lógica. Ordenado por secciones numeradas.
 
-  CAMBIOS FRECUENTES (dónde tocar):
-    • Agregar/quitar/renombrar un reporte ........ lista ROWS (en <script>)
-    • Poner el enlace de Power BI de un reporte .. objeto URLS (en <script>); sin enlace el reporte no hace nada
-    • Los reportes abren en la misma pestaña (ver comentario en "ENLACES POWER BI")
-    • Cambiar colores de marca ................... variables :root (en <style>)
-    • Cambiar el fondo de la banda de Reportes ... CSS ".repband" (al final del <style>)
-    • Cambiar textos fijos (títulos, descripciones) . en el HTML, busque el texto
-  Imágenes externas que deben estar junto a este archivo:
-    bg.jpg (cintas/X del pie), logo.png (OSA Matrix), slogan.png (eslogan).
+  CAMBIOS FRECUENTES
+    • Agregar / quitar / renombrar un reporte ... tabla ROWS (árbol "OSA Matrix") o COLLAB_ROWS (árbol "Colaborations OSA")
+    • Enlaces del Glosario ...................... lista GLOSSARY (sección 1 del script)
+    • Poner o cambiar el enlace de Power BI ..... última columna de esa misma fila de ROWS
+    • Colores de marca ......................... variables de la sección 0 del <style>
+    • Textos fijos (títulos, descripciones) ..... en el HTML; busque el texto
+
+  IMÁGENES (deben estar en la misma carpeta que este archivo): bg.jpg, logo.png, slogan.png
+    La versión "index-sharepoint.html" ya las lleva incluidas dentro del propio archivo.
+
+  USO DENTRO DE UN IFRAME (SharePoint, Teams, Power BI Apps)
+    • La página es estática: no usa cookies, almacenamiento local ni llamadas a servidores.
+    • Dentro de un iframe los reportes se abren en pestaña nueva (sección 8 del script), porque
+      Power BI y el inicio de sesión de Microsoft no permiten mostrarse dentro de un marco.
+    • Quién autoriza o rechaza mostrar la página dentro de un iframe es el SERVIDOR que la aloja
+      (cabeceras X-Frame-Options / frame-ancestors). No se puede cambiar desde este archivo.
   =====================================================================
 -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>OSA Matrix Reportes</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Anton&display=swap">
 <style>
-/* Layout: página negra con las cintas azul y naranja a la derecha (imagen de fondo), cabecera con el logo OSA Matrix junto a Mondelēz International, resumen de cifras, ruta de navegación y árbol de decisión horizontal con conectores animados */
+/* =====================================================================
+   0. VARIABLES  (cámbielas aquí y se aplican en toda la página)
+   ===================================================================== */
 :root {
-  /* ----- VARIABLES DE COLOR (cámbielas aquí y se aplican en toda la página) ----- */
-  --night: #000000;               /* negro base de la página */
-  --navy: #004095;                /* azul oscuro de marca */
-  --blue: #005BD8;                /* azul de marca */
-  --sky: #3D8BFF;                 /* azul claro (color "Operativo" y detalles) */
-  --orange: #F07800;              /* naranja: elementos seleccionados */
-  --gold: #FEBF02;                /* dorado: acentos, números, hover */
-  --silver: #DCDCDC;              /* gris plata para textos secundarios */
-  --ink: #F5F7FB;                 /* color principal del texto */
-  --muted: #9AA7BC;               /* texto atenuado (descripciones) */
-  --line: rgba(220, 220, 220, .14); /* color de bordes y líneas finas */
-  --panel: rgba(4, 8, 18, .8);    /* fondo semitransparente de las tarjetas */
-  --ac: var(--sky);               /* acento de las columnas del árbol (JS lo cambia a naranja al elegir un área) */
-  /* Tipografías: la de títulos se redefine como "Anton" en el bloque "Juntos somos imparables" */
-  --font-display: "Newsreader", Georgia, "Times New Roman", serif;
+  /* Marca */
+  --night: #000000;      /* negro base */
+  --navy: #004095;       /* azul oscuro */
+  --blue: #005BD8;       /* azul */
+  --sky: #3D8BFF;        /* azul claro (tipo "Operativo") */
+  --orange: #F07800;     /* naranja: elementos seleccionados */
+  --gold: #FEBF02;       /* dorado: acentos y hover */
+  --purple: #A07CE6;     /* morado de la campaña (tipo "Analítico") */
+  --red: #E8262A;        /* rojo de la sombra de los títulos */
+  --silver: #DCDCDC;     /* gris plata */
+  /* Texto y superficies */
+  --ink: #F5F7FB;        /* texto principal */
+  --muted: #9AA7BC;      /* texto atenuado */
+  --line: rgba(220, 220, 220, .14);  /* bordes finos */
+  --panel: rgba(4, 8, 18, .8);       /* fondo de tarjetas */
+  /* Degradado dorado de "Juntos somos imparables" (títulos y cifras) */
+  --grad: linear-gradient(180deg, #FFD23F 0%, #FEBF02 42%, #F07800 100%);
+  /* Acento de las columnas del árbol (el script lo cambia a naranja al elegir un área) */
+  --ac: var(--sky);
+  /* Tipografías */
+  --font-display: "Anton", Impact, "Arial Narrow", sans-serif;
   --font-body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
   color-scheme: dark;
 }
-/* ===== BASE: reglas generales de toda la página =====
-   box-sizing: el padding y el borde cuentan dentro del ancho de cada elemento */
-* { box-sizing: border-box; }
-html { background: var(--night); }
-body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
-button { font: inherit; color: inherit; }
-:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
-/* ".sr": texto solo para lectores de pantalla (invisible a la vista, accesibilidad) */
-.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 
-/* ".bg": imagen de fondo con las cintas azul y naranja (la X). Ahora vive SOLO en el pie (.footband). Para cambiarla, reemplace bg.jpg */
-.bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: #000 url("bg.jpg") right center / cover no-repeat; }
-/* Deja cabecera y contenido por encima de las capas de fondo */
+/* =====================================================================
+   1. BASE
+   ===================================================================== */
+* { box-sizing: border-box; }
+html {
+  background: var(--night);
+  padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px);   /* celulares con muesca */
+  scroll-padding-top: env(safe-area-inset-top, 0px);
+}
+body { margin: 0; background: var(--night); color: var(--ink); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
+img { max-width: 100%; }
+button { font: inherit; color: inherit; }
+[hidden] { display: none !important; }
+:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+/* Texto solo para lectores de pantalla */
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* Cabecera y contenedor principal por encima de las capas de fondo */
 .top, .wrap { position: relative; z-index: 1; }
 
-/* ===== CABECERA (.top): barra superior con marca Mondelēz + logo OSA Matrix + lema ===== */
-.top { background: rgba(0, 0, 0, .6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
-/* Contenedor interno de la cabecera: centrado, máx. 1320px, en fila y con salto de línea en pantallas pequeñas */
-.top-in {
-  max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
-  padding: 12px max(16px, env(safe-area-inset-left, 0px)) 12px max(16px, env(safe-area-inset-right, 0px));
-}
-/* Texto "Mondelēz International" (el "small" es la línea de abajo en mayúsculas) */
-.brand { font-weight: 600; font-size: 18px; letter-spacing: .01em; color: #fff; line-height: 1.15; }
-.brand small { display: block; font-weight: 500; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--silver); opacity: .8; }
-/* Línea vertical que separa Mondelēz del logo OSA Matrix */
-.sep { width: 1px; height: 40px; background: rgba(255,255,255,.28); }
-.logo { display: block; height: 46px; width: auto; max-width: 100%; }
-.tag { margin-left: auto; font-size: 10px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--silver); opacity: .75; }
-/* Cinta de colores de la marca. Se usa en la portada y arriba de la banda de Reportes. Ajuste los % para cambiar el ancho de cada color */
-.stripe { height: 3px; background: linear-gradient(90deg, var(--navy) 0 50%, var(--blue) 50% 72%, var(--purple) 72% 80%, var(--orange) 80% 92%, var(--gold) 92% 100%); }
+/* =====================================================================
+   2. BANDAS DE LA PÁGINA
+   ===================================================================== */
 
-/* ===== CONTENEDOR PRINCIPAL (.wrap): centra el contenido de la sección "Áreas" y apila sus bloques con 18px de separación ===== */
+/* ----- 2.1 Portada (.hero): negro liso con corte diagonal abajo ("44px" = inclinación) ----- */
+.hero { position: relative; z-index: 1; overflow: hidden; background: #000; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 44px), 0 100%); }
+.hero-in {
+  position: relative; z-index: 1; max-width: 1320px; margin: 0 auto;
+  padding: 36px 0 84px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ----- 2.2 Sección "Áreas" (.lower): azul noche que sube 44px para encajar con el corte de la portada ----- */
+.lower { position: relative; z-index: 0; margin-top: -44px; padding-top: 44px; background: linear-gradient(180deg, #0C1838 0, #08112A 340px, #060C1E 100%); border-top: 3px solid transparent; }
+.lower::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 260px; pointer-events: none; background: radial-gradient(60% 100% at 85% 0, rgba(0, 91, 216, .28), transparent 70%); }
 .wrap {
   max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
-  padding-block: 28px 32px;
-  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.lower .wrap { padding-block: 40px 56px; }
+
+/* ----- 2.3 Sección "Reportes" (.repband): banda morada propia con brillos de color arriba ----- */
+.repband { position: relative; z-index: 1; overflow: hidden; background: linear-gradient(180deg, #1B0B45 0, #12082E 260px, #09051A 100%); box-shadow: 0 -18px 40px rgba(0, 0, 0, .55); }
+.repband::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: radial-gradient(50% 220px at 12% 0, rgba(160, 124, 230, .30), transparent 70%), radial-gradient(45% 220px at 92% 0, rgba(240, 120, 0, .18), transparent 70%);
+}
+.rep-in {
+  position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
+  padding: 40px 0 32px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 
-/* ===== INTRODUCCIÓN (portada): eyebrow + título + párrafo a la izquierda, cifras abajo, eslogan a la derecha ===== */
-.intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px 40px; flex-wrap: wrap; }
-.eyebrow { font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--orange); margin: 0 0 8px; }
-.intro h1 { font-family: var(--font-display); font-weight: 500; font-size: clamp(28px, 4vw, 40px); line-height: 1.1; letter-spacing: -.01em; margin: 0 0 8px; text-wrap: balance; }
+/* ----- 2.4 Pie (.footband): lema a la izquierda y la X (bg.jpg) a la derecha ----- */
+.footband { position: relative; z-index: 1; overflow: hidden; background: #000; }
+.footband .stripe { position: relative; z-index: 2; }
+.bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; background: #000 url("bg.jpg") right center / cover no-repeat; }   /* si la X queda cortada: "right center / auto 100%" */
+.foot-in {
+  position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; min-height: 150px; display: flex; align-items: center;
+  padding: 36px 0 calc(36px + env(safe-area-inset-bottom, 0px)); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.foot { font-size: 10px; font-weight: 600; line-height: 2; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); text-align: center; }
+.footband .foot { text-align: left; }
+.slg { font-family: var(--font-display); font-weight: 400; font-size: 18px; letter-spacing: .14em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+
+/* =====================================================================
+   3. CABECERA Y PORTADA
+   ===================================================================== */
+.top { background: rgba(0, 0, 0, .6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-bottom: 1px solid var(--line); }
+.top-in {
+  max-width: 1320px; margin: 0 auto; display: flex; align-items: center; gap: 18px; flex-wrap: wrap;
+  padding: 12px 0; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.brand { font-weight: 600; font-size: 18px; letter-spacing: .01em; color: #fff; line-height: 1.15; }
+.brand small { display: block; font-weight: 500; font-size: 10px; letter-spacing: .2em; text-transform: uppercase; color: var(--silver); opacity: .8; }
+.sep { width: 1px; height: 40px; background: rgba(255, 255, 255, .28); }   /* línea entre Mondelēz y el logo */
+.logo { display: block; height: 46px; width: auto; max-width: 100%; }
+/* Cinta de colores de marca (portada, banda de Reportes y pie). Ajuste los % para cambiar el ancho de cada color */
+/* Botón y panel de Glosario (a la derecha de la cabecera) */
+.top { z-index: 5; }   /* por encima del título para que el panel del Glosario no quede detrás */
+.top-in { position: relative; }
+.gloss { margin-left: auto; position: relative; }
+.gl-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 18px; border: 1px solid #6FA8FF; border-radius: 999px; background: linear-gradient(180deg, #2F7BFF, #005BD8); box-shadow: 0 0 0 0 rgba(61, 139, 255, .6), 0 4px 14px rgba(0, 91, 216, .45); font-size: 12px; font-weight: 600; letter-spacing: .06em; color: #fff; cursor: pointer; transition: transform .2s, box-shadow .2s, background .2s; animation: glow 3.2s ease-in-out infinite; }
+.gl-btn:hover, .gl-btn[aria-expanded="true"] { background: linear-gradient(180deg, #5C9BFF, #1A6FF0); transform: translateY(-1px); }
+@keyframes glow { 0%, 100% { box-shadow: 0 0 0 0 rgba(61, 139, 255, .55), 0 4px 14px rgba(0, 91, 216, .45); } 50% { box-shadow: 0 0 0 7px rgba(61, 139, 255, 0), 0 4px 14px rgba(0, 91, 216, .45); } }
+.gl-panel { position: absolute; right: 0; top: calc(100% + 10px); z-index: 20; width: 300px; max-width: calc(100vw - 32px); padding: 16px 16px 12px; border: 1px solid var(--line); border-radius: 12px; background: #0C1838; box-shadow: 0 14px 36px rgba(0, 0, 0, .55); }
+.gl-title { margin: 0; font-family: var(--font-display); font-size: 20px; letter-spacing: .04em; text-transform: uppercase; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.gl-desc { margin: 2px 0 10px; font-size: 12px; color: var(--muted); }
+.gl-list { display: flex; flex-direction: column; gap: 6px; }
+.gl { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 8px 10px; border-radius: 8px; background: rgba(255, 255, 255, .05); text-decoration: none; color: var(--ink); }
+.gl b { display: block; font-size: 13px; font-weight: 600; }
+.gl small { display: block; font-size: 11px; color: var(--muted); }
+.gl svg { flex: none; width: 14px; height: 14px; color: var(--gold); }
+a.gl:hover { background: rgba(254, 191, 2, .14); }
+.gl.soon { cursor: default; }
+.gl.soon span { opacity: .65; }
+
+.stripe { height: 3px; background: linear-gradient(90deg, var(--navy) 0 50%, var(--blue) 50% 72%, var(--purple) 72% 80%, var(--orange) 80% 92%, var(--gold) 92% 100%); }
+
+.intro { display: flex; align-items: center; justify-content: space-between; gap: 20px 40px; flex-wrap: wrap; }
+.intro-main { flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
+.eyebrow { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--orange); }
+.intro h1 {
+  margin: 0 0 8px; font-family: var(--font-display); font-weight: 400; font-size: clamp(30px, 4.6vw, 50px); line-height: 1.05;
+  letter-spacing: .03em; text-transform: uppercase; text-wrap: balance;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent;
+  filter: drop-shadow(2px 2px 0 var(--red)) drop-shadow(3px 3px 0 #000);
+}
 .intro p { margin: 0; color: var(--muted); max-width: 60ch; }
-/* ".kpis" / ".kpi": las 3 cifras de resumen (Reportes, Áreas, Subprocesos), generadas por JS en "Cifras de resumen" */
+.slogan { flex: 0 1 340px; width: 340px; max-width: 100%; height: auto; transform: rotate(-1.5deg); filter: drop-shadow(0 8px 28px rgba(240, 120, 0, .28)); animation: punch .8s cubic-bezier(.2, .9, .25, 1.15) both; }
+@keyframes punch { 0% { transform: scale(.65) rotate(-7deg); opacity: 0; } 100% { transform: scale(1) rotate(-1.5deg); opacity: 1; } }
+
+/* Las 3 cifras (Reportes, Áreas, Subprocesos): las genera el script */
 .kpis { display: flex; flex-wrap: wrap; row-gap: 12px; }
 .kpi { padding: 0 24px; border-left: 1px solid var(--line); }
 .kpi:first-child { padding-left: 0; border-left: 0; }
 .kpi:last-child { padding-right: 0; }
-.kpi b { display: block; font-family: var(--font-display); font-weight: 500; font-size: 36px; line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi b {
+  display: block; font-family: var(--font-display); font-weight: 500; font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums;
+  background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(1px 2px 0 var(--red));
+}
 .kpi span { display: block; margin-top: 4px; font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
 
-/* ===== RUTA (migas de pan): muestra "Área › Subproceso" y el botón Reiniciar. La genera JS en crumbsHTML() ===== */
-.crumbs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 36px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); padding: 4px 0; }
-.crumbs .lbl { font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-right: 8px; }
-.crumbs .empty { color: var(--muted); }
-.crumbs .chev { color: var(--muted); padding: 0 2px; }
-.crumb { background: none; border: 0; font-weight: 600; cursor: pointer; padding: 5px 8px; border-radius: 6px; display: inline-flex; align-items: center; gap: 8px; color: var(--ink); }
+/* =====================================================================
+   4. SECCIÓN "ÁREAS": títulos, ruta y árbol
+   ===================================================================== */
+.sec { display: flex; flex-direction: column; gap: 14px; }
+.rep-sec { gap: 16px; }
+.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 28px; flex-wrap: wrap; }
+.sec-head h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.1; letter-spacing: .03em; text-transform: uppercase; }
+.sec-head p { margin: 4px 0 0; color: var(--muted); }
+
+/* ----- 4.1 Ruta (Área › Subproceso + Reiniciar) ----- */
+.crumbs { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; min-height: 36px; padding: 4px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.crumbs .lbl { margin-right: 8px; font-size: 10px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--muted); }
+.crumbs .empty, .crumbs .chev { color: var(--muted); }
+.crumbs .chev { padding: 0 2px; }
+.crumb { display: inline-flex; align-items: center; gap: 8px; padding: 5px 8px; border: 0; border-radius: 6px; background: none; font-weight: 600; color: var(--ink); cursor: pointer; }
 .crumb i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
-.crumb:hover { background: rgba(255,255,255,.08); }
-.crumb.current { cursor: default; color: #fff; }
+.crumb:hover { background: rgba(255, 255, 255, .08); }
+.crumb.current { color: #fff; cursor: default; }
 .crumb.current:hover { background: none; }
-.reset { margin-left: auto; background: none; border: 1px solid var(--line); color: var(--ink); font-weight: 600; cursor: pointer; padding: 4px 14px; border-radius: 6px; font-size: 12px; }
+.reset { margin-left: auto; padding: 4px 14px; border: 1px solid var(--line); border-radius: 6px; background: none; font-size: 12px; font-weight: 600; color: var(--ink); cursor: pointer; }
 .reset:hover { border-color: var(--gold); color: var(--gold); }
 
-/* ===== ÁRBOL HORIZONTAL (el gráfico de arriba) =====
-   .tree-card   = tarjeta contenedora (borde redondeado, brillo azul a la izquierda)
-   .tree-scroll = permite deslizar de lado en pantallas pequeñas
-   .tree        = cuadrícula de 4 columnas: Total › Área › Subproceso › Reporte
-   .links       = capa SVG donde JS dibuja las líneas conectoras
-   .col         = una columna; ".locked" la oculta hasta elegir el paso anterior
-   .colhead     = encabezado de columna (título + pregunta/valor elegido + botón ×)
-   .nodes       = lista de elementos de la columna */
-.tree-card {
-  border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
-  background: radial-gradient(520px 340px at 0% 50%, rgba(0, 64, 149, .32), transparent 72%), var(--panel);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
-.tree-scroll { overflow-x: auto; overflow-y: hidden; padding: 22px 24px 28px; scrollbar-width: thin; scrollbar-color: rgba(61,139,255,.5) transparent; }
-.tree {
-  position: relative; display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr));
-  column-gap: clamp(36px, 4vw, 64px); min-width: 940px; min-height: 540px;
-}
-.links { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; z-index: 0; }
+/* ----- 4.2 Árbol: tarjeta > zona deslizable > cuadrícula de 4 columnas (Total › Área › Subproceso › Reporte) ----- */
+.tree-card { border: 1px solid var(--line); border-radius: 14px; overflow: hidden; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); background: radial-gradient(520px 340px at 0% 50%, rgba(0, 64, 149, .32), transparent 72%), var(--panel); }
+.tree-scroll { overflow-x: auto; overflow-y: hidden; padding: 22px 24px 28px; scrollbar-width: thin; scrollbar-color: rgba(61, 139, 255, .5) transparent; }
+.tree { position: relative; display: grid; grid-template-columns: repeat(4, minmax(200px, 1fr)); column-gap: clamp(36px, 4vw, 64px); min-width: 940px; min-height: 540px; }
+.links { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; z-index: 0; }   /* capa SVG de las líneas */
 .col { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 14px; min-width: 0; transition: opacity .5s ease; }
-.col.locked { opacity: 0; visibility: hidden; pointer-events: none; }
+.col.locked { opacity: 0; visibility: hidden; pointer-events: none; }   /* oculta hasta elegir el paso anterior */
+.nodes { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
+.swipe { display: none; text-align: center; font-size: 12px; color: var(--muted); }   /* solo en pantallas pequeñas */
 
-.colhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; border-bottom: 2px solid var(--ac); padding-bottom: 7px; min-height: 58px; transition: border-color .4s; }
+.colhead { display: flex; align-items: flex-start; justify-content: space-between; gap: 6px; min-height: 58px; padding-bottom: 7px; border-bottom: 2px solid var(--ac); transition: border-color .4s; }
 .colhead.blank { border-bottom-color: transparent; }
 .colhead b { display: block; font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; }
-.colhead .val { display: block; margin-top: 2px; font-size: 13px; color: var(--muted); font-weight: 500; overflow-wrap: anywhere; }
-.colhead .q { display: block; margin-top: 2px; font-size: 13px; color: var(--gold); font-weight: 500; animation: ask 2.4s ease-in-out infinite; }
-.colhead .x { background: none; border: 0; cursor: pointer; color: var(--muted); font-size: 20px; line-height: 1; padding: 0 6px; border-radius: 6px; }
-.colhead .x:hover { color: #fff; background: rgba(255,255,255,.1); }
+.colhead .val { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--muted); overflow-wrap: anywhere; }
+.colhead .q { display: block; margin-top: 2px; font-size: 13px; font-weight: 500; color: var(--gold); animation: ask 2.4s ease-in-out infinite; }
+.colhead .x { padding: 0 6px; border: 0; border-radius: 6px; background: none; font-size: 20px; line-height: 1; color: var(--muted); cursor: pointer; }
+.colhead .x:hover { color: #fff; background: rgba(255, 255, 255, .1); }
 @keyframes ask { 50% { opacity: .6; } }
 
-.nodes { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; }
-
-/* ".node" = fila de Área/Subproceso (botón con barra, nombre y cantidad); ".report" = tarjeta de reporte con enlace */
+/* ----- 4.3 Nodos: ".node" = Área o Subproceso (botón); ".report" = reporte final (enlace) ----- */
 .node, .report {
-  --c: #3D8BFF;
-  position: relative; display: block; width: 100%; text-align: left; text-decoration: none; color: var(--ink);
-  background: transparent; border: 0; border-radius: 8px; padding: 9px 10px 10px; cursor: pointer;
-  transform-origin: left center; transition: background .2s, opacity .25s;
+  --c: #3D8BFF;   /* el script asigna el color de cada nodo */
+  position: relative; display: block; width: 100%; padding: 9px 10px 10px; border: 0; border-radius: 8px; background: transparent;
+  text-align: left; text-decoration: none; color: var(--ink); cursor: pointer; transform-origin: left center; transition: background .2s, opacity .25s;
 }
-.node:hover, .report:hover { background: rgba(255,255,255,.06); }
-/* ".bar": barra proporcional (JS calcula su ancho según la cantidad de reportes) */
-.bar { display: block; height: 6px; border-radius: 2px; background: rgba(220,220,220,.14); overflow: hidden; }
+.node:hover, .report:hover { background: rgba(255, 255, 255, .06); }
+.bar { display: block; height: 6px; border-radius: 2px; background: rgba(220, 220, 220, .14); overflow: hidden; }   /* barra proporcional */
 .bar i { display: block; height: 100%; border-radius: 2px; background: var(--c); transition: width .6s; }
 .name { display: block; margin-top: 7px; font-size: 13px; font-weight: 500; line-height: 1.35; color: color-mix(in srgb, var(--ink) 86%, transparent); overflow-wrap: anywhere; }
 .count { display: block; font-size: 12px; font-weight: 500; color: var(--muted); font-variant-numeric: tabular-nums; }
 .node:hover .name, .report:hover .name { color: #fff; }
-/* Estado "seleccionado" (naranja) y atenuado de los no elegidos */
+/* Seleccionado (naranja) y atenuado el resto */
 .node.sel { background: color-mix(in srgb, var(--c) 13%, transparent); }
 .node.sel .name { color: #fff; font-weight: 600; }
 .node.sel .count { color: var(--ink); }
 .node.sel .bar { box-shadow: 0 0 10px color-mix(in srgb, var(--c) 55%, transparent); }
+.node.sel .bar i { background: linear-gradient(90deg, #FEBF02, #F07800); }
 .nodes.has-sel .node:not(.sel) { opacity: .5; }
 .nodes.has-sel .node:not(.sel):hover { opacity: 1; }
-/* Nodo raíz "Total reportes": no es clicable */
-.node.root { --c: #3D8BFF; cursor: default; }
-.node.root:hover { background: transparent; }
+/* Raíces (OSA Matrix / Colaborations OSA): se pueden pulsar para cambiar de rama */
 .node.root .name { color: #fff; font-weight: 600; }
-
-/* Tarjeta de reporte final: borde fino y flecha circular que se rellena al pasar el mouse */
-.report { box-shadow: inset 0 0 0 1px var(--line); background: rgba(255,255,255,.04); transition: background .2s, box-shadow .2s, transform .2s; }
-.report .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.report .name { color: #fff; font-weight: 600; }
-.report .count { color: var(--gold); }
-.report .go { flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; border: 1px solid var(--c); color: var(--c); transition: background .2s, color .2s; }
-.report:hover .go { background: var(--c); color: #000; }
-.report .go svg { width: 14px; height: 14px; }
-.report:hover { box-shadow: inset 0 0 0 1px var(--c); transform: translateY(-1px); }
-
+.node.root.sel .bar i { background: var(--c); }   /* la raíz elegida queda azul, no naranja */
+/* Pulso al llegar la línea animada */
 .ping .bar i { animation: ping .9s ease-out; }
 @keyframes ping { 0% { filter: brightness(1.8) drop-shadow(0 0 8px var(--c)); } 100% { filter: none; } }
 
-/* ===== LÍNEAS CONECTORAS (SVG dibujado por drawLinks()) =====
-   .lk = línea gris normal; .lk.on = línea del camino elegido (color + brillo); .flow = puntitos animados que viajan por el camino elegido */
-.lk { fill: none; stroke: rgba(220,220,220,.2); stroke-width: 1.3; }
-.lk.on { stroke-width: 2.2; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor); }
-.flow { fill: none; stroke: var(--silver); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 1 20; opacity: .7; animation: dash 1.6s linear infinite, show .4s ease .9s backwards; }
-@keyframes dash { to { stroke-dashoffset: -21; } }
-@keyframes show { from { opacity: 0; } }
-
-/* ===== ENCABEZADO DE SECCIÓN "Áreas": título y descripción ===== */
-.sec { display: flex; flex-direction: column; gap: 14px; }
-.sec-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 28px; flex-wrap: wrap; }
-.sec-head h2 { font-family: var(--font-display); font-weight: 500; font-size: 28px; line-height: 1.1; margin: 0; }
-.sec-head p { margin: 4px 0 0; color: var(--muted); }
-
-/* ===== SECCIÓN REPORTES (componentes) =====
-   .rtoggle = botón-banner "REPORTES 42" que abre/cierra el panel
-   .rpanel  = panel desplegable con buscador, filtros y listado
-   .rcard   = tarjeta de cada reporte; .ptag = etiqueta de color del tipo
-   (Los colores de esta sección se sobrescriben al final, en ".repband") */
-.rtoggle {
-  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px; text-align: left; cursor: pointer;
-  padding: 18px 22px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel);
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); transition: border-color .2s, background .2s;
-}
-.rtoggle:hover { border-color: rgba(61, 139, 255, .65); background: rgba(8, 16, 34, .85); }
-.rt-text { min-width: 0; }
-.rt-title { display: block; font-family: var(--font-display); font-weight: 500; font-size: 28px; line-height: 1.1; }
-.rt-desc { display: block; margin-top: 4px; color: var(--muted); }
-.rt-meta { display: flex; align-items: center; gap: 14px; flex: none; }
-.rt-n { font-family: var(--font-display); font-weight: 500; font-size: 32px; line-height: 1; font-variant-numeric: tabular-nums; }
-.rt-chev { transition: transform .25s; color: var(--muted); }
-.rtoggle[aria-expanded="true"] .rt-chev { transform: rotate(180deg); }
-
-/* Panel desplegable. El atributo [hidden] lo oculta hasta pulsar el botón */
-.rpanel {
-  border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px 26px; display: flex; flex-direction: column; gap: 16px;
-  background: var(--panel); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
-}
-.rtools { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
-/* Caja de búsqueda y chips de filtro por área (Todos / Sales / Demand / ...; los chips los genera JS) */
-.search {
-  flex: 1 1 260px; min-width: 0; max-width: 380px; padding: 9px 12px; font: inherit; color: var(--ink);
-  background: rgba(255,255,255,.06); border: 1px solid var(--line); border-radius: 8px;
-}
-.search::placeholder { color: var(--muted); }
-.rfilters { display: flex; gap: 8px; flex-wrap: wrap; }
-.fchip {
-  --c: var(--silver); cursor: pointer; background: none; border: 1px solid var(--line); border-radius: 999px;
-  padding: 4px 12px; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px; color: var(--silver);
-}
-.fchip i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
-.fchip:hover { border-color: var(--c); }
-.fchip[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); color: #fff; }
-.rcount { font-size: 12px; color: var(--muted); }
-
-/* Grupos por área en el listado (SALES, CS&L, Demand...). ".rgrid" = cuadrícula de tarjetas, se adapta sola al ancho */
-.rgroup + .rgroup { margin-top: 22px; }
-.rgroup h3 {
-  display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; padding-bottom: 7px; border-bottom: 1px solid var(--line);
-  font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ink);
-}
-.rgroup h3 em { font-style: normal; color: var(--muted); font-weight: 500; letter-spacing: 0; font-variant-numeric: tabular-nums; }
-.rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 10px; }
-.rcard {
-  min-width: 0; display: flex; flex-direction: column; gap: 6px; text-decoration: none; color: inherit;
-  border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px; background: rgba(255,255,255,.04);
-  transition: border-color .2s, background .2s, transform .2s;
-}
-.rcard:hover { border-color: var(--silver); background: rgba(255,255,255,.08); transform: translateY(-1px); }
-.rtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
-.rtop b { font-weight: 600; color: #fff; overflow-wrap: anywhere; }
-.rtop svg { flex: none; width: 15px; height: 15px; margin-top: 3px; color: var(--muted); }
-.rcard:hover .rtop svg { color: #fff; }
-.rsub { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
-.ptags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
-.ptag { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 999px; color: #fff; background: color-mix(in srgb, var(--c) 20%, transparent); }
-.ptag i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
-.rempty { color: var(--muted); padding: 8px 0; }
-
-/* Aviso "Deslice hacia la derecha": solo se ve en pantallas pequeñas (ver @media) */
-.swipe { display: none; text-align: center; font-size: 12px; color: var(--muted); }
-/* Texto del pie ("Juntos somos imparables / Mondelēz International"); su banda se define más abajo en ".footband" */
-.foot { text-align: center; font-size: 10px; font-weight: 600; letter-spacing: .28em; text-transform: uppercase; color: var(--muted); }
-
-/* ===== RESPONSIVE: ajustes por tamaño de pantalla (tablet ≤1060px, móvil ≤700px y ≤560px) ===== */
-@media (max-width: 1060px) {
-  .tag { display: none; }
-  .swipe { display: block; }
-  .tree-scroll { padding: 16px 16px 22px; }
-}
-@media (max-width: 700px) {
-  .bg { opacity: .55; }
-  .logo { height: 38px; }
-  .sep { height: 34px; }
-}
-@media (max-width: 560px) {
-  .kpi { padding: 0 16px; }
-  .kpi b { font-size: 30px; }
-}
-/* Accesibilidad: si el usuario desactiva animaciones en su sistema, se apagan todas */
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation: none !important; transition: none !important; }
-}
-
-/* ===== ESTILO "JUNTOS SOMOS IMPARABLES" =====
-   Este bloque SOBRESCRIBE reglas anteriores (la última regla gana): fuente Anton para títulos, degradado dorado con sombra roja en títulos y cifras, y animación del eslogan.
-   Para cambiar la fuente de los títulos, edite --font-display aquí.
-   Juntos somos imparables: dorado/naranja con sombra roja y negra, y púrpura de los fragmentos */
-:root { --purple: #A07CE6; --red: #E8262A; --grad: linear-gradient(180deg, #FFD23F 0%, #FEBF02 42%, #F07800 100%); --font-display: "Anton", Impact, "Arial Narrow", sans-serif; }
-.intro { align-items: center; }
-.intro-main { flex: 1 1 440px; min-width: 0; display: flex; flex-direction: column; gap: 22px; }
-.intro h1, .sec-head h2, .rt-title { text-transform: uppercase; letter-spacing: .03em; font-weight: 400; }
-.intro h1 { font-size: clamp(30px, 4.6vw, 50px); line-height: 1.05; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(2px 2px 0 var(--red)) drop-shadow(3px 3px 0 #000); }
-.sec-head h2, .rt-title { font-size: 30px; }
-.kpi b { font-size: 40px; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(1px 2px 0 var(--red)); }
-.rt-n { font-size: 34px; color: var(--gold); }
-.tag { font-family: var(--font-display); font-weight: 400; font-size: 15px; letter-spacing: .14em; color: var(--gold); opacity: 1; }
-.slogan { flex: 0 1 340px; width: 340px; max-width: 100%; height: auto; transform: rotate(-1.5deg); filter: drop-shadow(0 8px 28px rgba(240, 120, 0, .28)); animation: punch .8s cubic-bezier(.2, .9, .25, 1.15) both; }
-@keyframes punch { 0% { transform: scale(.65) rotate(-7deg); opacity: 0; } 100% { transform: scale(1) rotate(-1.5deg); opacity: 1; } }
-.node.sel .bar i { background: linear-gradient(90deg, #FEBF02, #F07800); }
+/* Reporte final: borde fino y flecha circular que se rellena al pasar el mouse */
+.report { background: rgba(255, 255, 255, .04); box-shadow: inset 0 0 0 1px var(--line); transition: background .2s, box-shadow .2s, transform .2s; }
+.report .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.report .name { color: #fff; font-weight: 600; }
+.report .go { flex: none; width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--c); border-radius: 50%; color: var(--c); transition: background .2s, color .2s; }
+.report .go svg { width: 14px; height: 14px; }
+.report:hover .go { background: var(--c); color: #000; }
+.report:hover { box-shadow: inset 0 0 0 1px var(--c); transform: translateY(-1px); }
 .report .ptags { margin-top: 6px; }
-.slg { font-family: var(--font-display); font-weight: 400; font-size: 18px; letter-spacing: .14em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
-.foot { line-height: 2; }
-@media (max-width: 700px) { .slogan { flex-basis: 230px; width: 230px; margin: 0 auto; } }
-
-/* ===== TRANSICIÓN PORTADA → ÁREAS =====
-   .hero  = portada negra lisa con corte diagonal abajo (clip-path). Cambie "44px" para más/menos inclinación
-   .lower = fondo azul noche liso que sube 44px (margin-top negativo) para encajar con el corte diagonal
-   (Las cintas de bg.jpg ya no están en la portada: viven en el pie, ver ".footband"). Antes: las cintas viven solo en la portada; debajo, un fondo azul noche liso con corte diagonal */
-.hero { position: relative; z-index: 1; overflow: hidden; background: #000; clip-path: polygon(0 0, 100% 0, 100% calc(100% - 44px), 0 100%); }
-.hero-in { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; padding: 36px max(16px, env(safe-area-inset-left, 0px)) 84px max(16px, env(safe-area-inset-right, 0px)); }
-.lower { position: relative; z-index: 0; margin-top: -44px; padding-top: 44px; background: linear-gradient(180deg, #0C1838 0, #08112A 340px, #060C1E 100%); border-top: 3px solid transparent; }
-.lower::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 260px; pointer-events: none; background: radial-gradient(60% 100% at 85% 0, rgba(0, 91, 216, .28), transparent 70%); }
-.lower .wrap { padding-top: 40px; }
-@media (max-width: 700px) { .hero { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), 0 100%); } .lower { margin-top: -24px; padding-top: 24px; } .hero-in { padding-bottom: 56px; } }
-
-/* ===== BANDA DE REPORTES (.repband) =====
-   Sección independiente de la de Áreas: fondo morado propio, cinta de marca arriba y sombra que marca el corte.
-   .repband::before = brillos de color (morado a la izquierda, naranja a la derecha)
-   .rep-in          = contenedor centrado (mismo ancho máximo que .wrap)
-   ".repband .xxx"  = versiones moradas de los componentes de la sección Reportes
-   Para otro color de fondo, cambie los códigos del linear-gradient de ".repband" (y los rgba(160,124,230) de los bordes).
-   Banda propia de Reportes: fondo morado distinto al del árbol, con separación clara */
-.lower .wrap { padding-bottom: 56px; }
-.repband { position: relative; z-index: 1; background: linear-gradient(180deg, #1B0B45 0, #12082E 260px, #09051A 100%); box-shadow: 0 -18px 40px rgba(0, 0, 0, .55); overflow: hidden; }
-.repband::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-  background:
-    radial-gradient(50% 220px at 12% 0, rgba(160, 124, 230, .30), transparent 70%),
-    radial-gradient(45% 220px at 92% 0, rgba(240, 120, 0, .18), transparent 70%); }
-.rep-in { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px;
-  padding: 40px max(16px, env(safe-area-inset-left, 0px)) 32px max(16px, env(safe-area-inset-right, 0px)); }
-.rep-sec { gap: 16px; }
-/* Botón-banner morado con líneas diagonales doradas/naranjas (se dibujan con ::before). Degradado: #3A1385 → #5A1FA8 → #2A0E66 */
-.repband .rtoggle { position: relative; overflow: hidden; border: 1px solid rgba(160, 124, 230, .45); backdrop-filter: none; -webkit-backdrop-filter: none;
-  background: linear-gradient(100deg, #3A1385 0, #5A1FA8 48%, #2A0E66 100%); }
-.repband .rtoggle::before { content: ""; position: absolute; inset: 0; pointer-events: none;
-  background:
-    linear-gradient(162deg, transparent 58%, rgba(254, 191, 2, .55) 58.4%, transparent 59%),
-    linear-gradient(166deg, transparent 66%, rgba(240, 120, 0, .45) 66.3%, transparent 66.8%),
-    linear-gradient(20deg, transparent 40%, rgba(255, 255, 255, .10) 40.3%, transparent 41%); }
-.repband .rtoggle > * { position: relative; }
-.repband .rtoggle:hover { border-color: var(--gold); background: linear-gradient(100deg, #44189A 0, #6726BE 48%, #320F7A 100%); }
-.repband .rt-desc { color: #D9CCF5; }
-.repband .rt-chev { color: #fff; }
-/* Panel, tarjetas y buscador con borde morado traslúcido para integrarse con la banda */
-.repband .rpanel { background: rgba(8, 4, 22, .78); border-color: rgba(160, 124, 230, .28); backdrop-filter: none; -webkit-backdrop-filter: none; }
-.repband .rgroup h3 { border-bottom-color: rgba(160, 124, 230, .28); }
-.repband .rcard { border-color: rgba(160, 124, 230, .22); background: rgba(160, 124, 230, .06); }
-.repband .rcard:hover { border-color: var(--gold); background: rgba(160, 124, 230, .14); }
-.repband .search { border-color: rgba(160, 124, 230, .3); }
-@media (max-width: 700px) { .rep-in { padding-top: 28px; } }
-
-/* ===== PIE (.footband) =====
-   Banda negra de ancho completo. La imagen de las cintas (.bg, bg.jpg) se pega a la derecha para que la X quede a ese lado.
-   .foot-in = contenedor centrado (mismo ancho que .wrap) con el texto a la izquierda; min-height controla la altura del pie.
-   Si la X queda cortada o muy grande/pequeña, ajuste "right center / cover" en la regla ".bg" (por ejemplo "right center / auto 100%"). */
-.footband { position: relative; z-index: 1; overflow: hidden; background: #000; }
-.footband .stripe { position: relative; z-index: 2; }
-.foot-in { position: relative; z-index: 1; max-width: 1320px; margin: 0 auto; min-height: 150px; display: flex; align-items: center;
-  padding: 36px max(16px, env(safe-area-inset-left, 0px)) calc(36px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-right, 0px)); }
-.footband .foot { text-align: left; }
-@media (max-width: 700px) { .foot-in { min-height: 120px; padding-top: 28px; padding-bottom: 28px; } }
-
-/* Reportes SIN enlace ("nolink"): cursor normal, sin efecto de elevación y flecha atenuada, para que se note que no abren nada */
+/* Reporte sin enlace: cursor normal, sin elevación y flecha atenuada */
 .report.nolink, .rcard.nolink { cursor: default; }
 .report.nolink:hover, .rcard.nolink:hover { transform: none; }
 .nolink .go, .nolink .rtop svg { opacity: .3; }
 .report.nolink:hover .go { background: transparent; color: var(--c); }
 
-/* Aviso cuando el navegador bloquea abrir el reporte desde la página embebida */
-.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50; max-width: min(560px, calc(100% - 32px)); padding: 12px 16px; border-radius: 12px; background: #0C1838; color: #fff; border: 1px solid #F07800; font-size: 13px; line-height: 1.45; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
-.toast[hidden] { display: none; }
+/* ----- 4.4 Líneas conectoras (SVG): .lk = normal; .lk.on = camino elegido; .flow = puntos que viajan por el camino ----- */
+.lk { fill: none; stroke: rgba(220, 220, 220, .2); stroke-width: 1.3; }
+.lk.on { stroke-width: 2.2; stroke-linecap: round; filter: drop-shadow(0 0 3px currentColor); }
+.flow { fill: none; stroke: var(--silver); stroke-width: 2.6; stroke-linecap: round; stroke-dasharray: 1 20; opacity: .7; animation: dash 1.6s linear infinite, show .4s ease .9s backwards; }
+@keyframes dash { to { stroke-dashoffset: -21; } }
+@keyframes show { from { opacity: 0; } }
+
+/* =====================================================================
+   5. SECCIÓN "REPORTES": botón-banner y panel con buscador, filtros y tarjetas
+   ===================================================================== */
+.rtoggle {
+  position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 18px 22px; border: 1px solid rgba(160, 124, 230, .45); border-radius: 14px; text-align: left; cursor: pointer;
+  background: linear-gradient(100deg, #3A1385 0, #5A1FA8 48%, #2A0E66 100%); transition: border-color .2s, background .2s;
+}
+/* Líneas diagonales doradas/naranjas del banner */
+.rtoggle::before {
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(162deg, transparent 58%, rgba(254, 191, 2, .55) 58.4%, transparent 59%),
+    linear-gradient(166deg, transparent 66%, rgba(240, 120, 0, .45) 66.3%, transparent 66.8%),
+    linear-gradient(20deg, transparent 40%, rgba(255, 255, 255, .10) 40.3%, transparent 41%);
+}
+.rtoggle > * { position: relative; }
+.rtoggle:hover { border-color: var(--gold); background: linear-gradient(100deg, #44189A 0, #6726BE 48%, #320F7A 100%); }
+.rt-text { min-width: 0; }
+.rt-title { display: block; font-family: var(--font-display); font-weight: 400; font-size: 30px; line-height: 1.1; letter-spacing: .03em; text-transform: uppercase; }
+.rt-desc { display: block; margin-top: 4px; color: #D9CCF5; }
+.rt-meta { display: flex; align-items: center; gap: 14px; flex: none; }
+.rt-n { font-family: var(--font-display); font-weight: 500; font-size: 34px; line-height: 1; color: var(--gold); font-variant-numeric: tabular-nums; }
+.rt-chev { color: #fff; transition: transform .25s; }
+.rtoggle[aria-expanded="true"] .rt-chev { transform: rotate(180deg); }
+
+/* Panel desplegable (el atributo [hidden] lo oculta hasta pulsar el botón) */
+.rpanel { display: flex; flex-direction: column; gap: 16px; padding: 20px 24px 26px; border: 1px solid rgba(160, 124, 230, .28); border-radius: 14px; background: rgba(8, 4, 22, .78); }
+.rtools { display: flex; align-items: center; gap: 12px 20px; flex-wrap: wrap; }
+.search { flex: 1 1 260px; min-width: 0; max-width: 380px; padding: 9px 12px; font: inherit; color: var(--ink); background: rgba(255, 255, 255, .06); border: 1px solid rgba(160, 124, 230, .3); border-radius: 8px; }
+.search::placeholder { color: var(--muted); }
+.rfilters { display: flex; gap: 8px; flex-wrap: wrap; }   /* chips de área generados por el script */
+.fchip { --c: var(--silver); display: inline-flex; align-items: center; gap: 7px; padding: 4px 12px; border: 1px solid var(--line); border-radius: 999px; background: none; font-size: 12px; font-weight: 600; color: var(--silver); cursor: pointer; }
+.fchip i { width: 8px; height: 8px; border-radius: 2px; background: var(--c); }
+.fchip:hover { border-color: var(--c); }
+.fchip[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, transparent); color: #fff; }
+.rcount { font-size: 12px; color: var(--muted); }
+
+/* Listado agrupado por área; ".rgrid" se adapta solo al ancho disponible */
+.rgroup + .rgroup { margin-top: 22px; }
+.rgroup h3 { display: flex; align-items: baseline; gap: 10px; margin: 0 0 12px; padding-bottom: 7px; border-bottom: 1px solid rgba(160, 124, 230, .28); font-size: 11px; font-weight: 600; letter-spacing: .18em; text-transform: uppercase; color: var(--ink); }
+.rgroup h3 em { font-style: normal; font-weight: 500; letter-spacing: 0; color: var(--muted); font-variant-numeric: tabular-nums; }
+.rgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 270px), 1fr)); gap: 10px; }
+.rcard { min-width: 0; display: flex; flex-direction: column; gap: 6px; padding: 12px 14px; border: 1px solid rgba(160, 124, 230, .22); border-radius: 10px; background: rgba(160, 124, 230, .06); text-decoration: none; color: inherit; transition: border-color .2s, background .2s, transform .2s; }
+.rcard:hover { border-color: var(--gold); background: rgba(160, 124, 230, .14); transform: translateY(-1px); }
+.rtop { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+.rtop b { font-weight: 600; color: #fff; overflow-wrap: anywhere; }
+.rtop svg { flex: none; width: 15px; height: 15px; margin-top: 3px; color: var(--muted); }
+.rcard:hover .rtop svg { color: #fff; }
+.rsub { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.rempty { padding: 8px 0; color: var(--muted); }
+
+/* Etiquetas de tipo (Operativo / Estratégico / Analítico), dentro de cada reporte */
+.ptags { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 2px; }
+.ptag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--c) 20%, transparent); font-size: 11px; font-weight: 600; color: #fff; }
+.ptag i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
+
+/* =====================================================================
+   6. AVISO (solo dentro de un iframe, cuando el navegador bloquea abrir el reporte)
+   ===================================================================== */
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 50; max-width: min(560px, calc(100% - 32px)); padding: 12px 16px; border: 1px solid #F07800; border-radius: 12px; background: #0C1838; box-shadow: 0 10px 30px rgba(0, 0, 0, .5); font-size: 13px; line-height: 1.45; color: #fff; }
 .toast b { color: #FEBF02; }
-.toast input { width: 100%; margin-top: 8px; padding: 6px 8px; border-radius: 8px; border: 1px solid #2a3a66; background: #060C1E; color: #fff; font-size: 12px; }
+.toast input { width: 100%; margin-top: 8px; padding: 6px 8px; border: 1px solid #2a3a66; border-radius: 8px; background: #060C1E; font-size: 12px; color: #fff; }
+
+/* =====================================================================
+   7. RESPONSIVE (van al final para poder sobrescribir las reglas de arriba)
+   ===================================================================== */
+@media (max-width: 1060px) {
+  .swipe { display: block; }
+  .tree-scroll { padding: 16px 16px 22px; }
+}
+@media (max-width: 700px) {
+  .gl-btn { padding: 6px 12px; }
+  .logo { height: 38px; }
+  .sep { height: 34px; }
+  .slogan { flex-basis: 230px; width: 230px; margin: 0 auto; }
+  .hero { clip-path: polygon(0 0, 100% 0, 100% calc(100% - 24px), 0 100%); }
+  .hero-in { padding-bottom: 56px; }
+  .lower { margin-top: -24px; padding-top: 24px; }
+  .rep-in { padding-top: 28px; }
+  .foot-in { min-height: 120px; padding-top: 28px; padding-bottom: 28px; }
+  .bg { opacity: .55; }
+}
+@media (max-width: 560px) {
+  .kpi { padding: 0 16px; }
+}
+/* Accesibilidad: si el usuario pidió menos movimiento, se apagan las animaciones */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
 </style>
+</head>
+<body>
 
-<!-- ===== PORTADA (.hero): fondo negro liso (sin cintas) + cabecera + título + cifras + eslogan ===== -->
+<!-- ===== PORTADA (.hero): cabecera + título + cifras + eslogan ===== -->
 <div class="hero">
-<!-- Cabecera: marca Mondelēz | logo OSA Matrix | lema; debajo, la cinta de colores -->
-<header class="top">
-  <div class="top-in">
-    <div class="brand">Mondelēz<small>International</small></div>
-    <div class="sep"></div>
-    <img class="logo" src="logo.png" alt="OSA Matrix" width="285" height="132">
+  <header class="top">
+    <div class="top-in">
+      <div class="brand">Mondelēz<small>International</small></div>
+      <div class="sep"></div>
+      <img class="logo" src="logo.png" alt="OSA Matrix" width="285" height="132">
+      <!-- Glosario: botón + panel pequeño. Los enlaces salen de GLOSSARY (script, sección 1) -->
+      <div class="gloss">
+        <button class="gl-btn" id="gl-btn" aria-expanded="false" aria-controls="gl-panel">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/></svg>
+          Glosario
+        </button>
+        <div class="gl-panel" id="gl-panel" hidden>
+          <p class="gl-title">Glosario</p>
+          <p class="gl-desc">Consulta de términos, indicadores y procesos de OSA Matrix.</p>
+          <div class="gl-list" id="gl-list"></div>
+        </div>
+      </div>
+    </div>
+    <div class="stripe"></div>
+  </header>
+
+  <div class="hero-in">
+    <section class="intro">
+      <div class="intro-main">
+        <div>
+          <p class="eyebrow">Explora. Conecta. Descubre.</p>
+          <h1>Reportes OSA Matrix</h1>
+          <p>Conoce los reportes de OSA Matrix y navega por las diferentes áreas y subprocesos para encontrar la información que impulsa tus decisiones.</p>
+        </div>
+        <!-- Las 3 cifras las rellena el script (id="kpis"); no escribir números a mano -->
+        <div class="kpis" id="kpis"></div>
+      </div>
+      <img class="slogan" src="slogan.png" alt="Juntos somos imparables" width="1131" height="701">
+    </section>
   </div>
-  <div class="stripe"></div>
-</header>
-
-<!-- Contenido de la portada (centrado). Aquí se edita el texto del título y la descripción -->
-<div class="hero-in">
-  <section class="intro">
-    <div class="intro-main">
-      <div>
-        <p class="eyebrow">Explora. Conecta. Descubre.</p>
-        <h1>Reportes OSA Matrix</h1>
-        <p>Conoce los reportes de OSA Matrix y navega por las diferentes áreas y subprocesos para encontrar la información que impulsa tus decisiones.</p>
-      </div>
-      <!-- Las 3 cifras las rellena JavaScript (id="kpis"); no escribir números a mano -->
-      <div class="kpis" id="kpis"></div>
-    </div>
-    <img class="slogan" src="slogan.png" alt="Juntos somos imparables" width="1131" height="701">
-  </section>
-</div>
 </div>
 
-<!-- ===== SECCIÓN ÁREAS (.lower): fondo azul noche. Contiene ruta + árbol interactivo ===== -->
+<!-- ===== SECCIÓN ÁREAS (.lower): ruta + árbol interactivo ===== -->
 <div class="lower">
-<main class="wrap">
-
-  <!-- Bloque "Áreas": título, ruta y árbol (la leyenda de colores ya no va aquí: se ve en cada reporte) -->
-  <section class="sec" aria-labelledby="h-areas">
-    <div class="sec-head">
-      <div>
-        <h2 id="h-areas">Áreas</h2>
-        <p>Seleccione un área para desplegar sus subprocesos y reportes. Ordenadas de mayor a menor cantidad de reportes.</p>
+  <main class="wrap">
+    <section class="sec" aria-labelledby="h-areas" id="tree-main">
+      <div class="sec-head">
+        <div>
+          <h2 id="h-areas">Áreas</h2>
+          <p>Seleccione un área, o Colaborations OSA, para desplegar sus subprocesos y reportes.</p>
+        </div>
       </div>
-    </div>
 
-    <!-- Ruta seleccionada (Área › Subproceso + botón Reiniciar), generada por JS -->
-    <nav class="crumbs" id="crumbs" aria-label="Ruta seleccionada"></nav>
-
-    <!-- Árbol: <div id="tree"> lo llena JS con las 4 columnas y la capa SVG de líneas -->
-    <div class="tree-card" aria-label="Árbol de reportes">
-      <div class="tree-scroll" id="scroll">
-        <div class="tree" id="tree"></div>
+      <!-- Ruta (Área › Subproceso + Reiniciar) y árbol: los llena el script -->
+      <nav class="crumbs" aria-label="Ruta seleccionada"></nav>
+      <div class="tree-card" aria-label="Árbol de reportes">
+        <div class="tree-scroll"><div class="tree"></div></div>
       </div>
-    </div>
-    <div class="swipe">Deslice hacia la derecha para seguir la ruta →</div>
-  </section>
-
-
-
-</main>
+      <div class="swipe">Deslice hacia la derecha para seguir la ruta →</div>
+    </section>
+  </main>
 </div>
 
-<!-- ===== SECCIÓN REPORTES (.repband): banda morada separada del gráfico de arriba =====
-     Estructura: cinta de colores → botón-banner "Reportes" (abre/cierra) → panel con buscador, filtros por área y listado -->
+<!-- ===== SECCIÓN REPORTES (.repband): botón-banner que abre un panel con buscador, filtros y listado ===== -->
 <div class="repband">
-<div class="stripe" aria-hidden="true"></div>
-<div class="rep-in">
-  <section class="sec rep-sec" aria-label="Todos los reportes">
-    <!-- Botón-banner. El número (id="rn") lo pone JS con el total de reportes -->
-    <button class="rtoggle" id="rtoggle" aria-expanded="false" aria-controls="rpanel">
-      <span class="rt-text">
-        <span class="rt-title">Reportes</span>
-        <span class="rt-desc">Listado completo, con búsqueda y filtro por área.</span>
-      </span>
-      <span class="rt-meta">
-        <span class="rt-n" id="rn"></span>
-        <svg class="rt-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
-      </span>
-    </button>
+  <div class="stripe" aria-hidden="true"></div>
+  <div class="rep-in">
+    <section class="sec rep-sec" aria-label="Todos los reportes">
+      <button class="rtoggle" id="rtoggle" aria-expanded="false" aria-controls="rpanel">
+        <span class="rt-text">
+          <span class="rt-title">Reportes</span>
+          <span class="rt-desc">Listado completo, con búsqueda y filtro por área.</span>
+        </span>
+        <span class="rt-meta">
+          <span class="rt-n" id="rn"></span>
+          <svg class="rt-chev" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m6 9 6 6 6-6"/></svg>
+        </span>
+      </button>
 
-    <!-- Panel desplegable (inicia oculto por "hidden"). Se abre con el botón de arriba -->
-    <div class="rpanel" id="rpanel" hidden>
-      <div class="rtools">
-        <!-- Buscador: filtra por reporte, área o subproceso; los chips (id="rfilters") filtran por ÁREA -->
-        <input class="search" id="rsearch" type="search" placeholder="Buscar por reporte, área o subproceso" aria-label="Buscar reportes" autocomplete="off">
-        <div class="rfilters" id="rfilters" role="group" aria-label="Filtrar por área"></div>
+      <div class="rpanel" id="rpanel" hidden>
+        <div class="rtools">
+          <input class="search" id="rsearch" type="search" placeholder="Buscar por reporte, área o subproceso" aria-label="Buscar reportes" autocomplete="off">
+          <div class="rfilters" id="rfilters" role="group" aria-label="Filtrar por área"></div>
+        </div>
+        <div class="rcount" id="rcount" aria-live="polite"></div>
+        <div id="rlist"></div>
       </div>
-      <!-- "Mostrando X de Y reportes" y el listado agrupado por área (id="rlist"), ambos generados por JS -->
-      <div class="rcount" id="rcount" aria-live="polite"></div>
-      <div id="rlist"></div>
-    </div>
-  </section>
-</div>
+    </section>
+  </div>
 </div>
 
-<!-- ===== PIE (.footband): banda negra con el lema a la izquierda y la imagen de la X (bg.jpg) a la derecha =====
-     Para cambiar el texto del pie edite el contenido de <div class="foot">. La imagen se cambia reemplazando bg.jpg -->
+<!-- ===== PIE (.footband): lema a la izquierda, imagen de la X (bg.jpg) a la derecha ===== -->
 <footer class="footband">
   <div class="stripe" aria-hidden="true"></div>
-  <!-- Imagen decorativa con las cintas (la X). Se posiciona a la derecha por CSS (".footband .bg") -->
   <div class="bg" aria-hidden="true"></div>
   <div class="foot-in">
     <div class="foot"><span class="slg">Juntos somos imparables</span><br>Mondelēz International</div>
   </div>
 </footer>
 
-<!-- Región para lectores de pantalla (accesibilidad) -->
+<!-- Región para lectores de pantalla -->
 <div class="sr" id="sr" aria-live="polite"></div>
 
-<!-- ===== LÓGICA (JavaScript) ===== -->
 <script>
-/* ============ ENLACES POWER BI ============
-   URLS = enlace de cada reporte, escrito con el NOMBRE EXACTO que tiene en ROWS (mayúsculas, tildes y símbolos incluidos).
-   • Los enlaces se abren en una PESTAÑA NUEVA (target="_blank" rel="noopener" en las dos funciones que arman los enlaces:
-     nodeHTML() y reportCard()). Para abrirlos en la misma pestaña, quite ese atributo en ambas.
-   • Un reporte que NO esté en URLS (o tenga "") queda sin enlace: se ve en la lista pero no hace nada al pulsarlo.
-   • PARA AGREGAR/CAMBIAR un enlace:  "Nombre del reporte": "https://app.powerbi.com/...",   (con coma al final)
-   • No existe un enlace general por defecto: cada reporte usa solo el suyo. */
-var URLS = {
-  "Coverage": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=28e58488-1122-410f-b3ea-97749ca4f8d3&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Share of Market (Cencosud)": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0ee8b148-9d1b-458a-ab46-c3e82ab5d528&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "NPDs": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=33a0686f-0fc1-4616-ba11-c852351684dc&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Daily Sales Performance MT": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=650b35cf-3c20-4b03-bcce-3d5277405b0a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Daily SI Wacam": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=c64cfb90-3b40-44a6-8b12-37b608a65399&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Histórico SI&SO": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=606cbbbc-1c71-4fd8-8ade-3717ea27a15e&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "360° Country": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=ab55aa07-6c2b-41ec-a161-86762e0f8162&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Daily Sales Performance TT": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=db6fc5c6-65a8-427b-91ae-193e16fdfa98&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Daily SI vs IBP": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=e7b41cde-7ba2-4344-801c-8990ac9563c5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Daily SO vs IBP": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0c49df27-24fc-4ab4-b966-e289c930583b&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "CS&L Order To Bill & Quiebre & CFR": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=888f2221-9278-4880-89c6-aac1ea918073&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Stock Analysis": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=831e30c7-7cf5-47ff-8a03-4cbb8d05c727&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Trade stock weekly": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=de5c1396-3b0a-4ddc-979e-7d9e632b7569&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "SFA & SFB SI": "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/reports/2660a294-c03e-4b85-a75e-9a7169f3ff60?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0",
-  "Sanity Check": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=24db24df-5bef-44c8-a0d8-00ef48a0352a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "SFA & SFB SO": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=1d14f577-b18a-4afa-9d40-507a401fe3f5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Architect SI": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=df3f350a-861f-4743-8465-ba1cb1f84211&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Architect SO": "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=45752fa0-9d16-4727-9d63-ade4ad432a44&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720",
-  "Executive SO": "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/db5588e0-295a-f05e-dcc5-5f1f5b0bb7a2?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0",
-  "Pacing (SO KPIs of Comparable Customers)": "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/b933264e-8168-7bf2-ad17-265fcc7e2c51?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0",
-  "RGM Battleship": "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/f6f22734-f3e7-410e-f155-039905fb4b7c?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0",
-  "Extrapolado Tracker": "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/630f0f95-4683-c71d-d095-b86f944f632a?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0",
-
-  /* Reportes SIN enlace todavía (aparecen en la página pero no hacen nada al hacer clic).
-     Para activarlos: copie la línea, quite los // y pegue el enlace entre las comillas. */
-  // "NPDs Subchain": "",
-  // "TT Exhibidores": "",
-  // "MSL Dashboard": "",
-  // "NPDs Comercial": "",
-  // "EC Royal Tracker": "",
-  // "Speed Tracker Perú": "",
-  // "Architect SISO": "",
-  // "Avance Sell In – CAM": "",
-  // "KPIs Diario y Mensual · CAM y AMEX": "",
-  // "FastView · CAM+DR y AMEX+PR": "",
-  // "Business Review (Strategic Meetings)": "",
-  // "Reporte Operativo Pacífico": "",
-  // "Histórico SI – FS": "",
-  // "CMI reports (In Stocks)": "",
-  // "S&OE – EY": "",
-  // "NPDs Strategic (o9)": "",
-  // "Elasticity Tracker – RGM": "",
-  // "Wacam Parameters / SISO Coverage": "",
-  // "Indicadores de USO de OSA Matrix": "",
-  // "Ticketera OSA": "",
-};
-
-/* ============ DATOS (tabla actualizada) ============
-   [Área, Subproceso, Leyenda, Reporte]
-   Leyenda: O = Operativo, S = Estratégico, A = Analítico. Dos letras (por ejemplo "OS") muestran las dos etiquetas en el reporte.
-   Áreas y subprocesos se ordenan solos de mayor a menor cantidad de reportes.
-   PARA AGREGAR un reporte: añada una línea ["Área","Subproceso","O/S/A","Nombre"], con coma al final (excepto la última).
-   Un área o subproceso nuevo se crea solo al usar un nombre que no existía.
-   PARA QUITAR: borre su línea. Contadores y cifras se recalculan solos. */
+/* =====================================================================
+   1. DATOS
+   Una fila por reporte:  [ Área, Subproceso, Tipo, Nombre del reporte, Enlace de Power BI ]
+     • Tipo: O = Operativo, S = Estratégico, A = Analítico. Dos letras ("OS") muestran las dos etiquetas.
+     • Enlace: pegue el enlace completo entre comillas. Con "" el reporte se ve pero no abre nada.
+     • AGREGAR: copie una línea, cambie sus textos (coma al final, salvo en la última).
+       Un área o subproceso nuevo se crea solo al escribir un nombre que no existía.
+     • QUITAR: borre la línea. Cifras, contadores y orden (de más a menos reportes) se recalculan solos.
+   ===================================================================== */
 var ROWS = [
-  ["Sales", "Business Drivers", "A", "Coverage"],
-  ["Sales", "Business Drivers", "O", "NPDs Subchain"],
-  ["Sales", "Business Drivers", "O", "TT Exhibidores"],
-  ["Sales", "Business Drivers", "OS", "MSL Dashboard"],
-  ["Sales", "Business Drivers", "S", "NPDs Comercial"],
-  ["Sales", "Business Drivers", "S", "Share of Market (Cencosud)"],
-  ["Sales", "Business Drivers", "S", "NPDs"],
-  ["Sales", "Projects", "A", "EC Royal Tracker"],
-  ["Sales", "Projects", "A", "Speed Tracker Perú"],
-  ["Sales", "Self-Services", "O", "Architect SI"],
-  ["Sales", "Self-Services", "O", "Architect SISO"],
-  ["Sales", "Self-Services", "O", "Architect SO"],
-  ["Sales", "Commercial Quota", "O", "Avance Sell In – CAM"],
-  ["Sales", "Commercial Quota", "O", "KPIs Diario y Mensual · CAM y AMEX"],
-  ["Sales", "Commercial Quota", "OA", "FastView · CAM+DR y AMEX+PR"],
-  ["Sales", "Commercial Quota", "OA", "Daily Sales Performance MT"],
-  ["Sales", "Commercial Quota", "S", "Daily SI Wacam"],
-  ["Sales", "Business Overview", "OA", "Histórico SI&SO"],
-  ["Sales", "Business Overview", "S", "Business Review (Strategic Meetings)"],
-  ["Sales", "Business Overview", "S", "360° Country"],
-  ["Sales", "Productivity", "O", "Reporte Operativo Pacífico"],
-  ["Sales", "Productivity", "OA", "Daily Sales Performance TT"],
-  ["Sales", "Sales", "O", "Histórico SI – FS"],
-  ["Sales", "Sales", "S", "Daily SI vs IBP"],
-  ["Sales", "Sales", "S", "Daily SO vs IBP"],
-  ["Sales", "Sales", "SA", "Executive SO"],
-
-  ["CS&L", "Customer Management Inventory", "O", "CMI reports (In Stocks)"],
-  ["CS&L", "Orders", "O", "CS&L Order To Bill & Quiebre & CFR"],
-
-  ["Demand", "S&OE", "O", "Pacing (SO KPIs of Comparable Customers)"],
-  ["Demand", "S&OE", "O", "S&OE – EY"],
-  ["Demand", "Trade Stocks", "O", "Stock Analysis"],
-  ["Demand", "Trade Stocks", "S", "Trade stock weekly"],
-  ["Demand", "Demand Review", "S", "SFA & SFB SI"],
-  ["Demand", "Demand Review", "S", "Sanity Check"],
-  ["Demand", "Demand Review", "S", "SFA & SFB SO"],
-
-  ["Marketing", "Business Drivers", "S", "NPDs Strategic (o9)"],
-
-  ["RGM", "Elasticity", "O", "Elasticity Tracker – RGM"],
-  ["RGM", "Performance", "O", "RGM Battleship"],
-
-  ["OSA Process", "SISO Coverage", "O", "Wacam Parameters / SISO Coverage"],
-  ["OSA Process", "Extrapolate", "A", "Extrapolado Tracker"],
-  ["OSA Process", "Usage Report", "O", "Indicadores de USO de OSA Matrix"],
-  ["OSA Process", "Tickets OSA Assist", "O", "Ticketera OSA"]
+  ["Sales", "Business Drivers", "A", "Coverage", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=28e58488-1122-410f-b3ea-97749ca4f8d3&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Business Drivers", "O", "NPDs Subchain", ""],
+  ["Sales", "Business Drivers", "O", "TT Exhibidores", ""],
+  ["Sales", "Business Drivers", "OS", "MSL Dashboard", ""],
+  ["Sales", "Business Drivers", "S", "NPDs Comercial", ""],
+  ["Sales", "Business Drivers", "S", "Share of Market (Cencosud)", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0ee8b148-9d1b-458a-ab46-c3e82ab5d528&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Business Drivers", "S", "NPDs", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=33a0686f-0fc1-4616-ba11-c852351684dc&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Projects", "A", "EC Royal Tracker", ""],
+  ["Sales", "Projects", "A", "Speed Tracker Perú", ""],
+  ["Sales", "Self-Services", "O", "Architect SI", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=df3f350a-861f-4743-8465-ba1cb1f84211&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Self-Services", "O", "Architect SISO", ""],
+  ["Sales", "Self-Services", "O", "Architect SO", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=45752fa0-9d16-4727-9d63-ade4ad432a44&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Commercial Quota", "O", "Avance Sell In – CAM", ""],
+  ["Sales", "Commercial Quota", "O", "KPIs Diario y Mensual · CAM y AMEX", ""],
+  ["Sales", "Commercial Quota", "OA", "FastView · CAM+DR y AMEX+PR", ""],
+  ["Sales", "Commercial Quota", "OA", "Daily Sales Performance MT", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=650b35cf-3c20-4b03-bcce-3d5277405b0a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Commercial Quota", "S", "Daily SI Wacam", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=c64cfb90-3b40-44a6-8b12-37b608a65399&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Business Overview", "OA", "Histórico SI&SO", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=606cbbbc-1c71-4fd8-8ade-3717ea27a15e&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Business Overview", "S", "Business Review (Strategic Meetings)", ""],
+  ["Sales", "Business Overview", "S", "360° Country", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=ab55aa07-6c2b-41ec-a161-86762e0f8162&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Productivity", "O", "Reporte Operativo Pacífico", ""],
+  ["Sales", "Productivity", "OA", "Daily Sales Performance TT", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=db6fc5c6-65a8-427b-91ae-193e16fdfa98&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Sales", "O", "Histórico SI – FS", ""],
+  ["Sales", "Sales", "S", "Daily SI vs IBP", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=e7b41cde-7ba2-4344-801c-8990ac9563c5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Sales", "S", "Daily SO vs IBP", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0c49df27-24fc-4ab4-b966-e289c930583b&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Sales", "SA", "Executive SO", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/db5588e0-295a-f05e-dcc5-5f1f5b0bb7a2?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["CS&L", "Customer Management Inventory", "O", "CMI reports (In Stocks)", ""],
+  ["CS&L", "Orders", "O", "CS&L Order To Bill & Quiebre & CFR", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=888f2221-9278-4880-89c6-aac1ea918073&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Demand Planning", "S&OE", "O", "Pacing (SO KPIs of Comparable Customers)", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/b933264e-8168-7bf2-ad17-265fcc7e2c51?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Demand Planning", "S&OE", "O", "S&OE – EY", ""],
+  ["Demand Planning", "Trade Stocks", "O", "Stock Analysis", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=831e30c7-7cf5-47ff-8a03-4cbb8d05c727&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Demand Planning", "Trade Stocks", "S", "Trade stock weekly", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=de5c1396-3b0a-4ddc-979e-7d9e632b7569&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Demand Planning", "Demand Review", "S", "SFA & SFB SI", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/reports/2660a294-c03e-4b85-a75e-9a7169f3ff60?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Demand Planning", "Demand Review", "S", "Sanity Check", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=24db24df-5bef-44c8-a0d8-00ef48a0352a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Demand Planning", "Demand Review", "S", "SFA & SFB SO", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=1d14f577-b18a-4afa-9d40-507a401fe3f5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Marketing", "Business Drivers", "S", "NPDs Strategic (o9)", ""],
+  ["RGM", "Elasticity", "O", "Elasticity Tracker – RGM", ""],
+  ["RGM", "Performance", "O", "RGM Battleship", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/f6f22734-f3e7-410e-f155-039905fb4b7c?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["OSA Process", "SISO Coverage", "O", "Wacam Parameters / SISO Coverage", ""],
+  ["OSA Process", "Extrapolate", "A", "Extrapolado Tracker", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/630f0f95-4683-c71d-d095-b86f944f632a?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["OSA Process", "Usage Report", "O", "Indicadores de USO de OSA Matrix", ""],
+  ["OSA Process", "Tickets OSA Assist", "O", "Ticketera OSA", ""]
 ];
 
-/* PROC: nombre visible de cada tipo | PCODE: letra de ROWS → tipo | PORDER: orden de las etiquetas de tipo | PCOLOR: color de cada tipo */
+/* Segundo árbol, "Colaborations OSA": mismas columnas y reglas que ROWS (Área, Subproceso, Tipo, Reporte, Enlace).
+   Aquí el "área" es siempre la misma y el árbol muestra los reportes directo (la columna Subproceso solo agrupa los datos). */
+var COLLAB_ROWS = [
+  ["Colaborations OSA", "Incentives", "O", "Dashboard Incentivos", "https://app.powerbi.com/reportEmbed?reportId=1fc2a13e-9715-489f-ba96-7493e364030e&autoAuth=true&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7"],
+  ["Colaborations OSA", "E-Commerce", "OS", "E-Commerce", "https://app.powerbi.com/reportEmbed?reportId=d4aca3cb-5988-4133-a4ec-eb8c0368cf1c&autoAuth=true&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7"]
+];
+
+/* Glosario (botón de la cabecera). Un renglón por enlace: { name, desc, url }.
+   Con url "" aparece como "Próximamente". Para agregar uno, copie un renglón. */
+var GLOSSARY = [
+  { name: "Términos y definiciones", desc: "Conceptos clave de OSA Matrix", url: "" },
+  { name: "Indicadores (KPIs)", desc: "Cómo se calcula cada indicador", url: "" },
+  { name: "Procesos y subprocesos", desc: "Qué cubre cada área", url: "" }
+];
+
+/* Tipos: nombre visible, letra usada en ROWS y color de la etiqueta */
 var PROC = { operative: "Operativo", strategic: "Estratégico", analytical: "Analítico" };
 var PCODE = { O: "operative", S: "strategic", A: "analytical" };
-var PORDER = ["operative", "strategic", "analytical"];
-/* Áreas y subprocesos en tono neutro (naranja al seleccionarlos); el color propio queda para la leyenda */
 var PCOLOR = { operative: "#3D8BFF", strategic: "#FEBF02", analytical: "#A07CE6" };
 
-/* slug(): convierte un nombre en identificador simple (minúsculas y guiones) */
+/* Colores de los nodos del árbol: BASE = raíz, NEUTRAL = sin elegir, ORANGE = elegido */
+var BASE = "#3D8BFF", ORANGE = "#F07800", NEUTRAL = "#9DB4D6";
+
+/* =====================================================================
+   2. MODELO: convierte ROWS en Área → Subprocesos → Reportes (de mayor a menor cantidad; "OSA Process" siempre al final)
+   ===================================================================== */
 function slug(t) { return t.toLowerCase().replace(/[^a-z0-9]+/g, "-"); }
-/* AREAS: transforma la lista plana ROWS en Área → Subprocesos → Reportes con contadores, ordenada de mayor a menor. Es la "base de datos" que usan el árbol y el listado */
-var AREAS = (function () {
-  var list = [], by = {};
-  ROWS.forEach(function (r) {
-    var a = by[r[0]];
-    if (!a) { a = { id: slug(r[0]), name: r[0], count: 0, subs: [], bySub: {} }; by[r[0]] = a; list.push(a); }
+
+/* Área que siempre va al final del árbol principal (las demás se ordenan de mayor a menor cantidad de reportes) */
+var LAST_AREA = "OSA Process";
+
+function buildAreas(rows) {
+  var list = [], byName = {};
+  rows.forEach(function (r) {
+    var a = byName[r[0]];
+    if (!a) { a = { id: slug(r[0]), name: r[0], count: 0, subs: [], bySub: {} }; byName[r[0]] = a; list.push(a); }
     var s = a.bySub[r[1]];
     if (!s) { s = { name: r[1], reports: [] }; a.bySub[r[1]] = s; a.subs.push(s); }
-    s.reports.push({ name: r[3], url: URLS[r[3]] || "", legend: r[2].split("").map(function (c) { return PCODE[c]; }) });
+    s.reports.push({ name: r[3], url: r[4] || "", legend: r[2].split("").map(function (c) { return PCODE[c]; }) });
     a.count++;
   });
   list.forEach(function (a) { a.subs.sort(function (x, y) { return y.reports.length - x.reports.length; }); });
-  list.sort(function (x, y) { return y.count - x.count; });
+  list.sort(function (x, y) { return (x.name === LAST_AREA) - (y.name === LAST_AREA) || y.count - x.count; });
   return list;
-})();
+}
 
-/* ============ ESTADO ============
-   sel = lo que el usuario eligió (área, subproceso); al cambiarlo se llama a render().
-   BASE/ORANGE/NEUTRAL = colores de nodos | COLS = columnas del árbol | reduce = el usuario pidió menos animación */
-var BASE = "#3D8BFF", ORANGE = "#F07800", NEUTRAL = "#9DB4D6";
-var COLS = ["root", "area", "sub", "report"];
-var sel = { area: null, proc: null, sub: null };
-var linkSeen = {};
-var kb = false;
-var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+var AREAS = buildAreas(ROWS);              /* árbol "OSA Matrix" */
+var COLLAB = buildAreas(COLLAB_ROWS);      /* árbol "Colaborations OSA" */
+/* Cifras y listado de Reportes cuentan solo los reportes de OSA Matrix (Colaborations OSA queda aparte) */
+
+/* Lista plana de reportes (la usa el listado de la banda morada) */
+var REPORTS = [];
+AREAS.forEach(function (a) {
+  a.subs.forEach(function (s) {
+    s.reports.forEach(function (r) { REPORTS.push({ name: r.name, area: a.name, sub: s.name, legend: r.legend, url: r.url }); });
+  });
+});
+
+/* =====================================================================
+   3. UTILIDADES
+   ===================================================================== */
+var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;   /* el usuario pidió menos animación */
 var NS = "http://www.w3.org/2000/svg";
 var ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>';
 
-/* Utilidades: getArea/getSub devuelven el área/subproceso elegido; esc() protege el HTML de caracteres especiales; maxOf() da el mayor valor (escala de las barras) */
-function getArea() { return AREAS.find(function (a) { return a.id === sel.area; }) || null; }
-function getSub() { var a = getArea(); return a ? a.subs.find(function (s) { return s.name === sel.sub; }) || null : null; }
-function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
-function maxOf(arr) { return Math.max.apply(null, arr.concat([1])); }
-
-/* Cifras de resumen: calcula y pinta Reportes / Áreas / Subprocesos en la portada */
-(function () {
-  var subs = AREAS.reduce(function (n, a) { return n + a.subs.length; }, 0);
-  document.getElementById("kpis").innerHTML =
-    '<div class="kpi"><b>' + ROWS.length + '</b><span>Reportes</span></div>' +
-    '<div class="kpi"><b>' + AREAS.length + '</b><span>Áreas</span></div>' +
-    '<div class="kpi"><b>' + subs + '</b><span>Subprocesos</span></div>';
-})();
-
-/* ============ ESTRUCTURA ============
-   Crea las 4 columnas del árbol (bloqueadas al inicio) y la capa SVG de líneas */
-var tree = document.getElementById("tree");
-var scroller = document.getElementById("scroll");
-tree.innerHTML = '<svg class="links" id="links" aria-hidden="true"></svg>' + COLS.map(function (k) {
-  return '<div class="col locked" data-key="' + k + '"><div class="colhead"></div><div class="nodes"></div></div>';
-}).join("");
-var svg = document.getElementById("links");
-function colEl(k) { return tree.querySelector('.col[data-key="' + k + '"]'); }
-
-/* model(): describe qué muestra cada columna según la selección actual (títulos, preguntas, nodos). Para cambiar las preguntas ("¿De qué área es el reporte?", etc.) edite aquí */
-function model() {
-  var a = getArea(), s = getSub(), m = {};
-  m.root = { open: true, blank: true, nodes: [{ kind: "root", key: "root", name: "Total reportes", count: ROWS.length, max: ROWS.length, color: BASE }] };
-
-  var maxA = maxOf(AREAS.map(function (x) { return x.count; }));
-  m.area = { open: true, label: "Área", q: "¿De qué área es el reporte?", val: a ? a.name : "", clear: !!a,
-    nodes: AREAS.map(function (x) { var on = !!a && a.id === x.id; return { kind: "node", col: "area", id: x.id, key: "area:" + x.id, name: x.name, count: x.count, max: maxA, color: on ? ORANGE : NEUTRAL, selected: on }; }) };
-
-  m.sub = { open: !!a, label: "Subproceso", q: "¿Cuál subproceso?", val: s ? s.name : "", clear: !!s, nodes: [] };
-  if (a) {
-    var maxS = maxOf(a.subs.map(function (x) { return x.reports.length; }));
-    m.sub.nodes = a.subs.map(function (x) { var on = !!s && s.name === x.name; return { kind: "node", col: "sub", id: x.name, key: "sub:" + a.id + "/" + x.name, name: x.name, count: x.reports.length, max: maxS, color: on ? ORANGE : NEUTRAL, selected: on }; });
-  }
-
-  m.report = { open: !!s, label: "Reporte", q: "Elija uno para abrir su dashboard", val: "", clear: false, nodes: [] };
-  if (s) {
-    m.report.nodes = s.reports.map(function (r, i) { return { kind: "report", idx: i, key: "rep:" + a.id + "/" + s.name + "/" + r.name, name: r.name, url: r.url, legend: r.legend, color: PCOLOR[r.legend[0]] }; });
-  }
-  return m;
-}
-
-/* legGrad / legTags: color (o degradado de 2 colores) y etiquetas de tipo de un reporte */
-function legGrad(l) { var c = l.map(function (x) { return PCOLOR[x]; }); return c.length > 1 ? "linear-gradient(90deg," + c[0] + " 50%," + c[1] + " 50%)" : c[0]; }
-function legTags(l) { return l.map(function (x) { return '<span class="ptag" style="--c:' + PCOLOR[x] + '"><i></i>' + PROC[x] + "</span>"; }).join(""); }
-
-/* nodeHTML(): arma el HTML de un nodo: raíz, área/subproceso (botón) o reporte (enlace a Power BI, misma pestaña; sin enlace queda inactivo con la clase "nolink") */
-function nodeHTML(n) {
-  var st = "--c:" + n.color;
-  var pct = Math.max(7, Math.round((n.count || 0) / (n.max || 1) * 100));
-  if (n.kind === "report") {
-    return '<a class="report' + (n.url ? '' : ' nolink') + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + (n.url ? ' href="' + esc(n.url) + '"  rel="noopener"' : '') + '>' +
-      '<span class="bar"><i style="width:100%;background:' + legGrad(n.legend) + '"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="ptags">' + legTags(n.legend) + '</span></span><span class="go">' + ARROW + '</span></span></a>';
-  }
-  var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
-  if (n.kind === "root") return '<div class="node root" data-key="root" style="' + st + '">' + inner + '</div>';
-  return '<button class="node' + (n.selected ? " sel" : "") + '" data-col="' + n.col + '" data-id="' + esc(n.id) + '" data-key="' + esc(n.key) + '" style="' + st + '" aria-pressed="' + !!n.selected + '">' + inner + '</button>';
-}
-
-/* crumbsHTML(): arma la ruta "Área › Subproceso" y el botón Reiniciar */
-function crumbsHTML(a, s) {
-  var h = '<span class="lbl">Ruta</span>';
-  if (!a) return h + '<span class="empty">Seleccione un área para comenzar</span>';
-  var parts = [{ t: a.name, go: "sub", cur: !s }, s ? { t: s.name, go: "", cur: true } : null].filter(Boolean);
-  h += parts.map(function (x, i) {
-    return (i ? '<span class="chev">›</span>' : "") +
-      (x.cur ? '<span class="crumb current" style="--c:' + ORANGE + '"><i></i>' + esc(x.t) + "</span>"
-             : '<button class="crumb" style="--c:' + ORANGE + '" data-clear="' + x.go + '"><i></i>' + esc(x.t) + "</button>");
-  }).join("");
-  return h + '<button class="reset" id="reset">Reiniciar</button>';
-}
-
-/* render(): repinta TODO el árbol según "sel" (columnas, encabezados, nodos, ruta) y redibuja las líneas. Se llama en cada clic */
-function render(focusCol) {
-  var m = model();
-  var a = getArea(), s = getSub();
-  tree.style.setProperty("--ac", a ? ORANGE : BASE);
-
-  COLS.forEach(function (k) {
-    var c = m[k], el = colEl(k);
-    el.classList.toggle("locked", !c.open);
-    var head = el.querySelector(".colhead");
-    head.classList.toggle("blank", !!c.blank);
-    var h = "";
-    if (c.open && !c.blank) {
-      h = "<div><b>" + c.label + "</b>" + (c.val ? '<span class="val">' + esc(c.val) + "</span>" : '<span class="q">' + c.q + "</span>") + "</div>" +
-        (c.clear ? '<button class="x" data-clear="' + k + '" aria-label="Quitar ' + c.label + '">×</button>' : "");
-    }
-    head.innerHTML = h;
-    var nodes = el.querySelector(".nodes");
-    nodes.classList.toggle("has-sel", !!c.val);
-    nodes.innerHTML = c.open ? c.nodes.map(nodeHTML).join("") : "";
-  });
-
-  document.getElementById("crumbs").innerHTML = crumbsHTML(a, s);
-  document.getElementById("sr").textContent = !a ? m.area.q : !s ? m.sub.q : "Reportes disponibles: " + s.reports.length;
-
-  requestAnimationFrame(function () { drawLinks(true); });
-  if (focusCol) setTimeout(function () { revealCol(focusCol); }, 140);
-  if (kb && focusCol) {
-    var f = colEl(focusCol).querySelector(".node:not(.root), .report");
-    if (f) f.focus({ preventScroll: true });
-  }
-}
-
-/* revealCol(): en pantallas pequeñas desplaza el árbol de lado para que la columna nueva quede a la vista */
-function revealCol(k) {
-  var el = colEl(k);
-  if (!el || scroller.scrollWidth <= scroller.clientWidth + 2) return;
-  var left = el.offsetLeft, right = left + el.offsetWidth, target = scroller.scrollLeft;
-  if (right + 24 > scroller.scrollLeft + scroller.clientWidth) target = right + 24 - scroller.clientWidth;
-  else if (left - 24 < scroller.scrollLeft) target = Math.max(0, left - 24);
-  scroller.scrollTo({ left: target, behavior: reduce ? "auto" : "smooth" });
-}
-
-/* ============ CONECTORES, BROTES Y PULSOS ============
-   Todo lo de abajo es SOLO efecto visual (curvas, pulsos dorados, aparición de nodos); si algo falla aquí, el árbol sigue funcionando.
-   pos() = posición de un elemento en el árbol | mk() = crea elementos SVG | sendPulse()/tick() = pulso dorado que viaja por la línea | drawLinks() = dibuja las líneas */
-function pos(el) {
-  var x = 0, y = 0;
-  while (el && el !== tree) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
-  return { x: x, y: y };
-}
+var kb = false;   /* true si navega con teclado */
 function mk(tag, attrs) {
   var e = document.createElementNS(NS, tag);
   for (var k in attrs) e.setAttribute(k, attrs[k]);
   return e;
 }
+function esc(t) { return String(t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+function maxOf(arr) { return Math.max.apply(null, arr.concat([1])); }
 
-var pulses = [], raf = 0;
-function ping(el) { el.classList.remove("ping"); void el.offsetWidth; el.classList.add("ping"); }
-function sendPulse(path, len, delay, dur, target) {
-  var g = mk("g", { opacity: 0 });
-  g.appendChild(mk("circle", { r: 8, fill: "#FEBF02", "fill-opacity": .18 }));
-  g.appendChild(mk("circle", { r: 3, fill: "#FEBF02" }));
-  svg.appendChild(g);
-  pulses.push({ path: path, len: len, t0: performance.now() + delay, dur: dur, g: g, target: target });
-  if (!raf) raf = requestAnimationFrame(tick);
-}
-function tick(now) {
-  pulses = pulses.filter(function (p) {
-    if (!p.path.isConnected) { p.g.remove(); return false; }
-    var t = (now - p.t0) / p.dur;
-    if (t < 0) return true;
-    if (t >= 1) { p.g.remove(); if (p.target && p.target.isConnected) ping(p.target); return false; }
-    var e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
-    var pt = p.path.getPointAtLength(p.len * e);
-    p.g.setAttribute("transform", "translate(" + pt.x + " " + pt.y + ")");
-    p.g.setAttribute("opacity", 1);
-    return true;
-  });
-  raf = pulses.length ? requestAnimationFrame(tick) : 0;
+/* Etiquetas y color de un reporte según su tipo (un color o degradado de 2) */
+function legGrad(l) { var c = l.map(function (x) { return PCOLOR[x]; }); return c.length > 1 ? "linear-gradient(90deg," + c[0] + " 50%," + c[1] + " 50%)" : c[0]; }
+function legTags(l) { return l.map(function (x) { return '<span class="ptag" style="--c:' + PCOLOR[x] + '"><i></i>' + PROC[x] + "</span>"; }).join(""); }
+
+/* Enlace de un reporte: con URL abre en pestaña nueva; sin URL queda inactivo (clase "nolink") */
+function linkPart(url) {
+  return url ? { cls: "", attrs: ' href="' + esc(url) + '" target="_blank" rel="noopener"' } : { cls: " nolink", attrs: "" };
 }
 
-/* drawLinks(): une con curvas el nodo elegido de cada columna con todos los nodos de la columna siguiente; el camino elegido se resalta con color y puntos animados */
-function drawLinks(animate) {
-  svg.innerHTML = "";
-  pulses = [];
-  svg.setAttribute("viewBox", "0 0 " + tree.offsetWidth + " " + tree.offsetHeight);
-  var area = getArea(), nextSeen = {};
-  for (var i = 0; i < COLS.length - 1; i++) {
-    var pc = colEl(COLS[i]), cc = colEl(COLS[i + 1]);
-    if (cc.classList.contains("locked")) continue;
-    var parent = i === 0 ? pc.querySelector(".node.root") : pc.querySelector(".node.sel");
-    if (!parent) continue;
-    var pb = parent.querySelector(".bar"), pp = pos(parent);
-    var x1 = pp.x + pb.offsetLeft + pb.offsetWidth, y1 = pp.y + pb.offsetTop + pb.offsetHeight / 2;
-    var kids = cc.querySelectorAll(".node, .report");
-    var dots = [], idx = 0;
-    kids.forEach(function (k) {
-      var kbar = k.querySelector(".bar"), kp = pos(k);
-      var x2 = kp.x + kbar.offsetLeft, y2 = kp.y + kbar.offsetTop + kbar.offsetHeight / 2;
-      var mx = (x1 + x2) / 2;
-      var d = "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2;
-      var chosen = k.classList.contains("sel") || k.classList.contains("report");
-      var color = k.classList.contains("report") ? k.style.getPropertyValue("--c") : ORANGE;
-      var key = (parent.dataset.key || "") + ">" + k.dataset.key;
-      var isNew = !linkSeen[key];
-      nextSeen[key] = 1;
-      var delay = idx * 80;
+/* =====================================================================
+   4. ÁRBOL INTERACTIVO (un solo árbol con dos raíces en la primera columna)
+   Raíz "OSA Matrix"       →  Área → Subproceso → Reporte        (datos: ROWS)
+   Raíz "Colaborations OSA" →  Reporte (directo, sin subprocesos) (datos: COLLAB_ROWS)
+   Al pulsar una raíz, el árbol cambia a esa rama. Las columnas se llaman por posición
+   (root, area, sub, report); en la rama de Colaborations la 2ª columna muestra los reportes.
+   ===================================================================== */
+function createTree(root) {
+  var tree = root.querySelector(".tree");
+  var scroller = root.querySelector(".tree-scroll");
+  var crumbsEl = root.querySelector(".crumbs");
+  var COLS = ["root", "area", "sub", "report"];
+  var sel = { root: "main", area: null, sub: null };   /* root: "main" = OSA Matrix, "collab" = Colaborations OSA. Al cambiar algo se llama a render() */
+  var linkSeen = {};                                    /* líneas ya dibujadas (para animar solo las nuevas) */
+  var pulses = [], raf = 0;
 
-      var path = mk("path", { d: d, class: "lk" + (chosen ? " on" : "") });
-      if (chosen) { path.setAttribute("stroke", color); path.style.color = color; }
-      svg.appendChild(path);
-      var len = path.getTotalLength();
-      var grow = animate && isNew && !reduce;
-      if (grow) {
-        path.animate([{ strokeDasharray: len + " " + len, strokeDashoffset: len }, { strokeDasharray: len + " " + len, strokeDashoffset: 0 }],
-          { duration: 760, delay: delay, easing: "cubic-bezier(.4,0,.2,1)", fill: "backwards" });
-        /* el nodo nuevo brota desde el nodo elegido */
-        k.animate([{ opacity: 0, transform: "translate(" + (x1 - x2) + "px," + (y1 - y2) + "px) scale(.5)" }, { opacity: 1, transform: "none" }],
-          { duration: 780, delay: delay, easing: "cubic-bezier(.2,.9,.25,1.08)", fill: "backwards" });
-        sendPulse(path, len, delay, 760, k);
+  function isCollab() { return sel.root === "collab"; }
+  function list() { return isCollab() ? COLLAB : AREAS; }
+  function getArea() { return list().find(function (a) { return a.id === sel.area; }) || null; }
+  function getSub() { var a = getArea(); return a ? a.subs.find(function (s) { return s.name === sel.sub; }) || null : null; }
+  function colEl(k) { return tree.querySelector('.col[data-key="' + k + '"]'); }
+
+  tree.innerHTML = '<svg class="links" aria-hidden="true"></svg>' + COLS.map(function (k) {
+    return '<div class="col locked" data-key="' + k + '"><div class="colhead"></div><div class="nodes"></div></div>';
+  }).join("");
+  var svg = tree.querySelector(".links");
+
+  /* ----- 4.1 Modelo: qué muestra cada columna según la selección. Las preguntas se editan aquí ----- */
+  function model() {
+    var a = getArea(), s = getSub(), m = {};
+    var collab = isCollab();
+    var rootNode = function (key, name, count) { var on = sel.root === key; return { kind: "root", col: "root", id: key, key: "root:" + key, name: name, count: count, max: count, color: on ? BASE : NEUTRAL, selected: on }; };
+    m.root = { open: true, blank: true, hasSel: true, nodes: [rootNode("main", "OSA Matrix", ROWS.length), rootNode("collab", "Colaborations OSA", COLLAB_ROWS.length)] };
+
+    if (!collab) {
+      var maxA = maxOf(AREAS.map(function (x) { return x.count; }));
+      m.area = { open: true, label: "Área", q: "¿De qué área es el reporte?", val: a ? a.name : "", clear: !!a,
+        nodes: AREAS.map(function (x) { var on = !!a && a.id === x.id; return { kind: "node", col: "area", id: x.id, key: "area:" + x.id, name: x.name, count: x.count, max: maxA, color: on ? ORANGE : NEUTRAL, selected: on }; }) };
+
+      m.sub = { open: !!a, label: "Subproceso", q: "¿Cuál subproceso?", val: s ? s.name : "", clear: !!s, nodes: [] };
+      if (a) {
+        var maxS = maxOf(a.subs.map(function (x) { return x.reports.length; }));
+        m.sub.nodes = a.subs.map(function (x) { var on = !!s && s.name === x.name; return { kind: "node", col: "sub", id: x.name, key: "sub:" + a.id + "/" + x.name, name: x.name, count: x.reports.length, max: maxS, color: on ? ORANGE : NEUTRAL, selected: on }; });
       }
-      if (chosen && !reduce) svg.appendChild(mk("path", { d: d, class: "flow" }));
-      dots.push({ x: x2, y: y2, color: color, chosen: chosen, delay: delay, grow: grow });
-      idx++;
-    });
-    svg.appendChild(mk("circle", { cx: x1, cy: y1, r: 3.5, fill: i === 0 ? BASE : ORANGE }));
-    dots.forEach(function (o) {
-      var c = mk("circle", { cx: o.x, cy: o.y, r: o.chosen ? 3.5 : 2.8, fill: o.chosen ? o.color : "#05070D", stroke: o.chosen ? "none" : "#DCDCDC", "stroke-opacity": .45, "stroke-width": 1.1 });
-      svg.appendChild(c);
-      if (o.grow) c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay: o.delay + 520, fill: "backwards" });
-    });
+      m.report = { open: !!s, label: "Reporte", q: "Elija uno para abrir su dashboard", val: "", clear: false, nodes: reportNodes(a, s) };
+    } else {
+      /* Colaborations OSA: sin subprocesos; la 2ª columna muestra directamente sus reportes (las demás no se usan) */
+      var all = [];
+      a.subs.forEach(function (x) { all = all.concat(reportNodes(a, x)); });
+      m.area = { open: true, label: "Reporte", q: "Elija uno para abrir su dashboard", val: "", clear: false, nodes: all };
+      m.sub = { open: false, nodes: [] };
+      m.report = { open: false, nodes: [] };
+    }
+    return m;
   }
-  linkSeen = nextSeen;
-}
+  function reportNodes(a, s) {
+    return !s ? [] : s.reports.map(function (r, i) { return { kind: "report", idx: i, key: "rep:" + a.id + "/" + s.name + "/" + r.name, name: r.name, url: r.url, legend: r.legend, color: PCOLOR[r.legend[0]] }; });
+  }
 
-/* ============ EVENTOS ============
-   kb detecta navegación con teclado | el "click" global maneja: quitar selección (×), Reiniciar, abrir reportes y elegir área/subproceso */
+  /* ----- 4.2 HTML de un nodo: raíz, área/subproceso (botón) o reporte (enlace) ----- */
+  function nodeHTML(n) {
+    var st = "--c:" + n.color;
+    var pct = Math.max(7, Math.round((n.count || 0) / (n.max || 1) * 100));
+    if (n.kind === "report") {
+      var lk = linkPart(n.url);
+      return '<a class="report' + lk.cls + '" data-key="' + esc(n.key) + '" data-report="' + n.idx + '" style="' + st + '"' + lk.attrs + '>' +
+        '<span class="bar"><i style="width:100%;background:' + legGrad(n.legend) + '"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="ptags">' + legTags(n.legend) + '</span></span><span class="go">' + ARROW + '</span></span></a>';
+    }
+    var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
+    return '<button class="node' + (n.kind === "root" ? " root" : "") + (n.selected ? " sel" : "") + '" data-col="' + n.col + '" data-id="' + esc(n.id) + '" data-key="' + esc(n.key) + '" style="' + st + '" aria-pressed="' + !!n.selected + '">' + inner + '</button>';
+  }
+
+  /* ----- 4.3 Ruta "Área › Subproceso" y botón Reiniciar (en el árbol plano solo se muestra el subproceso) ----- */
+  function crumbsHTML(a, s) {
+    var h = '<span class="lbl">Ruta</span>';
+    var parts;
+    if (isCollab()) parts = [{ t: "Colaborations OSA", go: "", cur: true }];
+    else if (a) parts = [{ t: a.name, go: "sub", cur: !s }, s ? { t: s.name, go: "", cur: true } : null];
+    else return h + '<span class="empty">Seleccione un área para comenzar</span>';
+    h += parts.filter(Boolean).map(function (x, i) {
+      return (i ? '<span class="chev">›</span>' : "") +
+        (x.cur ? '<span class="crumb current" style="--c:' + ORANGE + '"><i></i>' + esc(x.t) + "</span>"
+               : '<button class="crumb" style="--c:' + ORANGE + '" data-clear="' + x.go + '"><i></i>' + esc(x.t) + "</button>");
+    }).join("");
+    return h + '<button class="reset" data-reset>Reiniciar</button>';
+  }
+
+  /* ----- 4.4 render(): repinta columnas, nodos y ruta según "sel" y redibuja las líneas. Se llama en cada clic ----- */
+  function render(focusCol, silent) {
+    var m = model();
+    var a = getArea(), s = getSub();
+    tree.style.setProperty("--ac", m.area.val ? ORANGE : BASE);
+
+    COLS.forEach(function (k) {
+      var c = m[k], el = colEl(k);
+      el.classList.toggle("locked", !c.open);
+      var head = el.querySelector(".colhead");
+      head.classList.toggle("blank", !!c.blank);
+      var h = "";
+      if (c.open && !c.blank) {
+        h = "<div><b>" + c.label + "</b>" + (c.val ? '<span class="val">' + esc(c.val) + "</span>" : '<span class="q">' + c.q + "</span>") + "</div>" +
+          (c.clear ? '<button class="x" data-clear="' + (c.clearKey || k) + '" aria-label="Quitar ' + c.label + '">×</button>' : "");
+      }
+      head.innerHTML = h;
+      var nodes = el.querySelector(".nodes");
+      nodes.classList.toggle("has-sel", !!c.val || !!c.hasSel);
+      nodes.innerHTML = c.open ? c.nodes.map(nodeHTML).join("") : "";
+    });
+
+    crumbsEl.innerHTML = crumbsHTML(a, s);
+    if (!silent) document.getElementById("sr").textContent = !s ? (isCollab() || !a ? m.area.q : m.sub.q) : "Reportes disponibles: " + s.reports.length;
+
+    requestAnimationFrame(function () { drawLinks(!silent); });
+    if (focusCol) setTimeout(function () { revealCol(focusCol); }, 140);
+    if (kb && focusCol) {
+      var f = colEl(focusCol).querySelector(".node:not(.root), .report");
+      if (f) f.focus({ preventScroll: true });
+    }
+  }
+
+  /* En pantallas pequeñas desplaza el árbol de lado para mostrar la columna nueva */
+  function revealCol(k) {
+    var el = colEl(k);
+    if (!el || scroller.scrollWidth <= scroller.clientWidth + 2) return;
+    var left = el.offsetLeft, right = left + el.offsetWidth, target = scroller.scrollLeft;
+    if (right + 24 > scroller.scrollLeft + scroller.clientWidth) target = right + 24 - scroller.clientWidth;
+    else if (left - 24 < scroller.scrollLeft) target = Math.max(0, left - 24);
+    scroller.scrollTo({ left: target, behavior: reduce ? "auto" : "smooth" });
+  }
+
+  /* ===================================================================
+     5. CONECTORES Y PULSOS (solo efecto visual: si algo falla aquí, el árbol sigue funcionando)
+     pos() posición dentro del árbol | sendPulse()/tick() pulso dorado | drawLinks() dibuja las curvas
+     =================================================================== */
+  function pos(el) {
+    var x = 0, y = 0;
+    while (el && el !== tree) { x += el.offsetLeft; y += el.offsetTop; el = el.offsetParent; }
+    return { x: x, y: y };
+  }
+  function ping(el) { el.classList.remove("ping"); void el.offsetWidth; el.classList.add("ping"); }
+  function sendPulse(path, len, delay, dur, target) {
+    var g = mk("g", { opacity: 0 });
+    g.appendChild(mk("circle", { r: 8, fill: "#FEBF02", "fill-opacity": .18 }));
+    g.appendChild(mk("circle", { r: 3, fill: "#FEBF02" }));
+    svg.appendChild(g);
+    pulses.push({ path: path, len: len, t0: performance.now() + delay, dur: dur, g: g, target: target });
+    if (!raf) raf = requestAnimationFrame(tick);
+  }
+  function tick(now) {
+    pulses = pulses.filter(function (p) {
+      if (!p.path.isConnected) { p.g.remove(); return false; }
+      var t = (now - p.t0) / p.dur;
+      if (t < 0) return true;
+      if (t >= 1) { p.g.remove(); if (p.target && p.target.isConnected) ping(p.target); return false; }
+      var e = t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+      var pt = p.path.getPointAtLength(p.len * e);
+      p.g.setAttribute("transform", "translate(" + pt.x + " " + pt.y + ")");
+      p.g.setAttribute("opacity", 1);
+      return true;
+    });
+    raf = pulses.length ? requestAnimationFrame(tick) : 0;
+  }
+
+  /* Une con curvas el nodo elegido de cada columna con todos los de la siguiente; el camino elegido se resalta */
+  function drawLinks(animate) {
+    svg.innerHTML = "";
+    pulses = [];
+    svg.setAttribute("viewBox", "0 0 " + tree.offsetWidth + " " + tree.offsetHeight);
+    var nextSeen = {};
+    for (var i = 0; i < COLS.length - 1; i++) {
+      var pc = colEl(COLS[i]), cc = colEl(COLS[i + 1]);
+      if (cc.classList.contains("locked")) continue;
+      var parent = i === 0 ? pc.querySelector(".node.root.sel") : pc.querySelector(".node.sel");
+      if (!parent) continue;
+      var pb = parent.querySelector(".bar"), pp = pos(parent);
+      var x1 = pp.x + pb.offsetLeft + pb.offsetWidth, y1 = pp.y + pb.offsetTop + pb.offsetHeight / 2;
+      var kids = cc.querySelectorAll(".node, .report");
+      var dots = [], idx = 0;
+      kids.forEach(function (k) {
+        var kbar = k.querySelector(".bar"), kp = pos(k);
+        var x2 = kp.x + kbar.offsetLeft, y2 = kp.y + kbar.offsetTop + kbar.offsetHeight / 2;
+        var mx = (x1 + x2) / 2;
+        var d = "M" + x1 + "," + y1 + " C" + mx + "," + y1 + " " + mx + "," + y2 + " " + x2 + "," + y2;
+        var chosen = k.classList.contains("sel") || k.classList.contains("report");
+        var color = k.classList.contains("report") ? k.style.getPropertyValue("--c") : ORANGE;
+        var key = (parent.dataset.key || "") + ">" + k.dataset.key;
+        var isNew = !linkSeen[key];
+        nextSeen[key] = 1;
+        var delay = idx * 80;
+
+        var path = mk("path", { d: d, class: "lk" + (chosen ? " on" : "") });
+        if (chosen) { path.setAttribute("stroke", color); path.style.color = color; }
+        svg.appendChild(path);
+        var len = path.getTotalLength();
+        var grow = animate && isNew && !reduce;
+        if (grow) {
+          path.animate([{ strokeDasharray: len + " " + len, strokeDashoffset: len }, { strokeDasharray: len + " " + len, strokeDashoffset: 0 }],
+            { duration: 760, delay: delay, easing: "cubic-bezier(.4,0,.2,1)", fill: "backwards" });
+          /* el nodo nuevo brota desde el nodo elegido */
+          k.animate([{ opacity: 0, transform: "translate(" + (x1 - x2) + "px," + (y1 - y2) + "px) scale(.5)" }, { opacity: 1, transform: "none" }],
+            { duration: 780, delay: delay, easing: "cubic-bezier(.2,.9,.25,1.08)", fill: "backwards" });
+          sendPulse(path, len, delay, 760, k);
+        }
+        if (chosen && !reduce) svg.appendChild(mk("path", { d: d, class: "flow" }));
+        dots.push({ x: x2, y: y2, color: color, chosen: chosen, delay: delay, grow: grow });
+        idx++;
+      });
+      svg.appendChild(mk("circle", { cx: x1, cy: y1, r: 3.5, fill: i === 0 ? BASE : ORANGE }));
+      dots.forEach(function (o) {
+        var c = mk("circle", { cx: o.x, cy: o.y, r: o.chosen ? 3.5 : 2.8, fill: o.chosen ? o.color : "#05070D", stroke: o.chosen ? "none" : "#DCDCDC", "stroke-opacity": .45, "stroke-width": 1.1 });
+        svg.appendChild(c);
+        if (o.grow) c.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250, delay: o.delay + 520, fill: "backwards" });
+      });
+    }
+    linkSeen = nextSeen;
+  }
+
+  /* ===================================================================
+     6. EVENTOS: un solo "click" por árbol: quitar selección (×), Reiniciar, o elegir área / subproceso.
+     Los enlaces de reporte navegan solos (ver sección 8 si la página está en un iframe).
+     =================================================================== */
+  root.addEventListener("click", function (e) {
+    var clr = e.target.closest("[data-clear]");
+    if (clr) {
+      var k = clr.dataset.clear;
+      if (k === "area") { sel.area = null; sel.sub = null; }
+      if (k === "sub") { sel.sub = null; }
+      render(k);
+      return;
+    }
+    if (e.target.closest("[data-reset]")) { sel.root = "main"; sel.area = null; sel.sub = null; render("area"); return; }
+    if (e.target.closest("[data-report]")) return;
+
+    var n = e.target.closest(".node[data-col]");
+    if (!n) return;
+    var col = n.dataset.col;
+    if (col === "root") {
+      if (n.dataset.id === sel.root) return;
+      sel.root = n.dataset.id; sel.area = isCollab() ? COLLAB[0].id : null; sel.sub = null;
+      render("area");
+    } else if (col === "area") { sel.area = n.dataset.id; sel.sub = null; render("sub"); }
+    else { sel.sub = n.dataset.id; render(isCollab() ? "sub" : "report"); }
+  });
+
+  function redraw() { requestAnimationFrame(function () { drawLinks(false); }); }
+  window.addEventListener("resize", redraw);
+  if (window.ResizeObserver) new ResizeObserver(redraw).observe(tree);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
+
+  render(null, true);
+}
 
 document.addEventListener("keydown", function () { kb = true; });
 document.addEventListener("pointerdown", function () { kb = false; });
 
-document.addEventListener("click", function (e) {
-  var clr = e.target.closest("[data-clear]");
-  if (clr) {
-    var k = clr.dataset.clear;
-    if (k === "area") { sel.area = null; sel.proc = null; sel.sub = null; }
-    if (k === "proc") { sel.proc = null; sel.sub = null; }
-    if (k === "sub") { sel.sub = null; }
-    render(k); return;
-  }
-  if (e.target.closest("#reset")) {
-    sel.area = sel.proc = sel.sub = null; render("area"); return;
-  }
-  var rep = e.target.closest("[data-report]");
-  if (rep) {
-    var r = getSub().reports[+rep.dataset.report];
-    if (!r.url) e.preventDefault();   /* reporte sin enlace: no hace nada */
-    return;
-  }
-  var n = e.target.closest(".node[data-col]");
-  if (!n) return;
-  var col = n.dataset.col, id = n.dataset.id, next = "proc";
-  if (col === "area") { sel.area = id; sel.sub = null; next = "sub"; }
-  if (col === "proc") { sel.proc = id; sel.sub = null; next = "sub"; }
-  if (col === "sub") { sel.sub = id; next = "report"; }
-  render(next);
-});
+createTree(document.getElementById("tree-main"));
 
-function redraw() { requestAnimationFrame(function () { drawLinks(false); }); }
-window.addEventListener("resize", redraw);
-if (window.ResizeObserver) new ResizeObserver(redraw).observe(tree);
-if (document.fonts && document.fonts.ready) document.fonts.ready.then(redraw);
-
-render();
-
-/* ============ LISTADO DE REPORTES (banda morada) ============
-   REPORTS = lista plana de todos los reportes | rf = filtros activos (texto y área)
-   reportCard() = HTML de cada tarjeta | renderFilters() = chips de filtro por área (uno por cada área de AREAS)
-   renderReports() = aplica búsqueda + filtro, agrupa por área y actualiza "Mostrando X de Y"
-   El botón rtoggle abre/cierra el panel; el buscador y los chips llaman a renderReports() */
-var REPORTS = (function () {
-  var list = [];
-  AREAS.forEach(function (a) { a.subs.forEach(function (s) { s.reports.forEach(function (r) { list.push({ name: r.name, area: a.name, subs: [s.name], procs: r.legend }); }); }); });
-  return list;
-})();
-/* rf.q = texto buscado | rf.area = nombre del área elegida ("" = todas) */
+/* =====================================================================
+   7. LISTADO DE REPORTES (banda morada)
+   rf = filtros activos (texto y área) | renderReports() aplica búsqueda + filtro, agrupa por área y actualiza "Mostrando X de Y"
+   ===================================================================== */
 var rf = { q: "", area: "" };
-document.getElementById("rn").textContent = REPORTS.length;
 
 function reportCard(x) {
-  var url = URLS[x.name] || "";   /* sin enlace → tarjeta inactiva */
-  /* Se abre en pestaña nueva (target="_blank"). Sin enlace no lleva href y se marca con la clase "nolink" */
-  return '<a class="rcard' + (url ? '' : ' nolink') + '"' + (url ? ' href="' + esc(url) + '" target="_blank" rel="noopener"' : '') + '>' +
+  var lk = linkPart(x.url);
+  return '<a class="rcard' + lk.cls + '"' + lk.attrs + '>' +
     '<span class="rtop"><b>' + esc(x.name) + "</b>" + ARROW + "</span>" +
-    '<span class="rsub">' + esc(x.subs.join(" · ")) + "</span>" +
-    '<span class="ptags">' + x.procs.map(function (id) {
-      return '<span class="ptag" style="--c:' + PCOLOR[id] + '"><i></i>' + PROC[id] + "</span>";
-    }).join("") + "</span></a>";
+    '<span class="rsub">' + esc(x.sub) + "</span>" +
+    '<span class="ptags">' + legTags(x.legend) + "</span></a>";
 }
 
-/* renderFilters(): "Todos" + un chip por cada área (en el orden de AREAS: de más a menos reportes).
-   Color de los chips de área: naranja (el mismo de "seleccionado" en el árbol). Cámbielo en "c". */
+/* Chips: "Todos" + uno por área (en el orden de AREAS). El color de los chips se cambia en "c" */
 function renderFilters() {
   var opts = [{ id: "", t: "Todos", c: "#DCDCDC" }].concat(AREAS.map(function (a) { return { id: a.name, t: a.name, c: ORANGE }; }));
   document.getElementById("rfilters").innerHTML = opts.map(function (o) {
@@ -928,8 +890,8 @@ function renderFilters() {
 function renderReports() {
   var q = rf.q.trim().toLowerCase();
   var shown = REPORTS.filter(function (x) {
-    if (rf.area && x.area !== rf.area) return false;   /* filtro por área */
-    return !q || (x.name + " " + x.area + " " + x.subs.join(" ")).toLowerCase().indexOf(q) >= 0;
+    if (rf.area && x.area !== rf.area) return false;
+    return !q || (x.name + " " + x.area + " " + x.sub).toLowerCase().indexOf(q) >= 0;
   });
   var html = "";
   AREAS.forEach(function (a) {
@@ -955,14 +917,16 @@ document.getElementById("rsearch").addEventListener("input", function () { rf.q 
 document.getElementById("rfilters").addEventListener("click", function (e) {
   var b = e.target.closest("[data-f]");
   if (!b) return;
-  rf.area = b.dataset.f; renderReports();
+  rf.area = b.dataset.f;
+  renderReports();
 });
-renderReports();
 
-/* ============ ABRIR REPORTES DESDE EL EMBEBIDO DE POWER BI ============
-   Si la página está dentro de un marco (Power BI Apps), el clic normal puede cargar Power BI dentro del marco y este lo rechaza.
-   Aquí se intenta abrir SIEMPRE fuera del marco: 1) pestaña nueva, 2) ventana superior, 3) aviso con el enlace copiado.
-   Fuera del embebido (página abierta directamente) no cambia nada: el enlace funciona normal. */
+/* =====================================================================
+   8. DENTRO DE UN IFRAME (SharePoint, Teams, Power BI Apps)
+   Si la página está en un marco, un clic normal cargaría Power BI dentro del marco y este lo rechaza ("rechazó la conexión").
+   Por eso se intenta abrir SIEMPRE fuera del marco: 1) pestaña nueva, 2) ventana superior, 3) aviso con el enlace copiado.
+   Si la página se abre directamente (sin iframe) esta sección no hace nada.
+   ===================================================================== */
 (function () {
   var embedded = false;
   try { embedded = window.top !== window.self; } catch (e) { embedded = true; }
@@ -991,12 +955,42 @@ renderReports();
   }
 
   document.addEventListener("click", function (e) {
-    var a = e.target.closest ? e.target.closest("a.report[href], a.rcard[href]") : null;
+    var a = e.target.closest ? e.target.closest("a.report[href], a.rcard[href], a.gl[href]") : null;
     if (!a || e.ctrlKey || e.metaKey || e.shiftKey || e.button === 1) return;
     e.preventDefault();
     openOutside(a.href);
   });
 })();
-</script>
 
-</body></html>
+/* =====================================================================
+   8b. GLOSARIO: botón de la cabecera. Se cierra al pulsar fuera o con Esc.
+   ===================================================================== */
+(function () {
+  var btn = document.getElementById("gl-btn"), panel = document.getElementById("gl-panel");
+  document.getElementById("gl-list").innerHTML = GLOSSARY.map(function (g) {
+    var note = [g.desc, g.url ? "" : "Próximamente"].filter(Boolean).join(" · ");
+    var inner = "<span><b>" + esc(g.name) + "</b>" + (note ? "<small>" + esc(note) + "</small>" : "") + "</span>";
+    return g.url ? '<a class="gl" href="' + esc(g.url) + '" target="_blank" rel="noopener">' + inner + ARROW + "</a>"
+                 : '<div class="gl soon">' + inner + "</div>";
+  }).join("");
+  function setOpen(o) { panel.hidden = !o; btn.setAttribute("aria-expanded", o); }
+  btn.addEventListener("click", function () { setOpen(panel.hidden); });
+  document.addEventListener("click", function (e) { if (!panel.hidden && !e.target.closest(".gloss")) setOpen(false); });
+  document.addEventListener("keydown", function (e) { if (e.key === "Escape" && !panel.hidden) { setOpen(false); btn.focus(); } });
+})();
+
+/* =====================================================================
+   9. ARRANQUE
+   ===================================================================== */
+(function () {
+  var subs = AREAS.reduce(function (n, a) { return n + a.subs.length; }, 0);
+  document.getElementById("kpis").innerHTML =
+    '<div class="kpi"><b>' + ROWS.length + '</b><span>Reportes</span></div>' +
+    '<div class="kpi"><b>' + AREAS.length + '</b><span>Áreas</span></div>' +
+    '<div class="kpi"><b>' + subs + '</b><span>Subprocesos</span></div>';
+})();
+document.getElementById("rn").textContent = REPORTS.length;
+renderReports();
+</script>
+</body>
+</html>
