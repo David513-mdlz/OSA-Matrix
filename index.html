@@ -333,6 +333,10 @@ a.gl:hover { background: rgba(254, 191, 2, .14); }
 .ptag { display: inline-flex; align-items: center; gap: 6px; padding: 2px 9px; border-radius: 999px; background: color-mix(in srgb, var(--c) 20%, transparent); font-size: 11px; font-weight: 600; color: #fff; }
 .ptag i { width: 7px; height: 7px; border-radius: 50%; background: var(--c); }
 
+/* Tooltip de subprocesos (lo posiciona el script, sección 8c) */
+.tip { position: fixed; z-index: 60; max-width: 260px; padding: 7px 11px; border: 1px solid var(--gold); border-radius: 8px; background: #0C1838; box-shadow: 0 8px 22px rgba(0, 0, 0, .5); font-size: 12px; font-weight: 500; line-height: 1.4; color: #fff; pointer-events: none; opacity: 0; transition: opacity .15s; }
+.tip.on { opacity: 1; }
+
 /* =====================================================================
    6. AVISO (solo dentro de un iframe, cuando el navegador bloquea abrir el reporte)
    ===================================================================== */
@@ -481,46 +485,46 @@ a.gl:hover { background: rgba(254, 191, 2, .14); }
      • QUITAR: borre la línea. Cifras, contadores y orden (de más a menos reportes) se recalculan solos.
    ===================================================================== */
 var ROWS = [
-  ["Sales", "Business Drivers", "A", "Coverage", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=28e58488-1122-410f-b3ea-97749ca4f8d3&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Business Drivers", "A", "Coverage", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/58d6cff7-4042-3dcb-6f77-e54a4dd4a1ca?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["Sales", "Business Drivers", "O", "NPDs Subchain", ""],
   ["Sales", "Business Drivers", "O", "TT Exhibidores", ""],
   ["Sales", "Business Drivers", "OS", "MSL Dashboard", ""],
   ["Sales", "Business Drivers", "S", "NPDs Comercial", ""],
-  ["Sales", "Business Drivers", "S", "Share of Market (Cencosud)", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0ee8b148-9d1b-458a-ab46-c3e82ab5d528&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Sales", "Business Drivers", "S", "NPDs", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=33a0686f-0fc1-4616-ba11-c852351684dc&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Business Drivers", "S", "Share of Market (Cencosud)", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/599fa505-c40f-2807-6a55-7a9c5e11ecce?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Business Drivers", "S", "NPDs", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/43be0c82-2a35-cd62-f5c3-be098b018f07?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["Sales", "Projects", "A", "EC Royal Tracker", ""],
   ["Sales", "Projects", "A", "Speed Tracker Perú", ""],
-  ["Sales", "Self-Services", "O", "Architect SI", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=df3f350a-861f-4743-8465-ba1cb1f84211&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Self-Services", "O", "Architect SI", ""],
   ["Sales", "Self-Services", "O", "Architect SISO", ""],
-  ["Sales", "Self-Services", "O", "Architect SO", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=45752fa0-9d16-4727-9d63-ade4ad432a44&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Self-Services", "O", "Architect SO", ""],
   ["Sales", "Commercial Quota", "O", "Avance Sell In – CAM", ""],
   ["Sales", "Commercial Quota", "O", "KPIs Diario y Mensual · CAM y AMEX", ""],
   ["Sales", "Commercial Quota", "OA", "FastView · CAM+DR y AMEX+PR", ""],
-  ["Sales", "Commercial Quota", "OA", "Daily Sales Performance MT", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=650b35cf-3c20-4b03-bcce-3d5277405b0a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Sales", "Commercial Quota", "S", "Daily SI Wacam", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=c64cfb90-3b40-44a6-8b12-37b608a65399&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Sales", "Business Overview", "OA", "Histórico SI&SO", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=606cbbbc-1c71-4fd8-8ade-3717ea27a15e&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Sales", "Business Overview", "S", "Business Review (Strategic Meetings)", ""],
-  ["Sales", "Business Overview", "S", "360° Country", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=ab55aa07-6c2b-41ec-a161-86762e0f8162&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Commercial Quota", "OA", "Daily Sales Performance MT", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/2f34ee40-4c63-354b-2f7d-703b2cc8d734?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Commercial Quota", "S", "Daily SI Wacam", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/84dc5936-6ae5-e0e3-94b3-5d53e65c3e23?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Business Overview", "OA", "Histórico SI&SO", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/a2880048-c889-0577-d9ce-35828afe3d78?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Business Overview", "S", "Business Review (Strategic Meetings)", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/b0e494b7-2c3c-4255-1e64-b74e8666425b?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Business Overview", "S", "360° Country", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/f9d51089-d6f1-1883-1916-6fa7dda2ef39?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["Sales", "Productivity", "O", "Reporte Operativo Pacífico", ""],
-  ["Sales", "Productivity", "OA", "Daily Sales Performance TT", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=db6fc5c6-65a8-427b-91ae-193e16fdfa98&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Sales", "Productivity", "OA", "Daily Sales Performance TT", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/2fe9b715-0eaa-16c8-ff71-8af42fca1bd0?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["Sales", "Sales", "O", "Histórico SI – FS", ""],
-  ["Sales", "Sales", "S", "Daily SI vs IBP", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=e7b41cde-7ba2-4344-801c-8990ac9563c5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Sales", "Sales", "S", "Daily SO vs IBP", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=0c49df27-24fc-4ab4-b966-e289c930583b&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Sales", "Sales", "SA", "Executive SO", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/db5588e0-295a-f05e-dcc5-5f1f5b0bb7a2?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Sales", "S", "Daily SI vs IBP", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/d85a6bf7-14f0-dd0d-d928-8c4b5c56b279?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Sales", "S", "Daily SO vs IBP", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/6c8213f6-af23-4930-05f7-661adac711a1?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Sales", "Sales", "SA", "Executive SO", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/a1dea9c7-26e9-7508-75cf-283704836cc8?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["CS&L", "Customer Management Inventory", "O", "CMI reports (In Stocks)", ""],
-  ["CS&L", "Orders", "O", "CS&L Order To Bill & Quiebre & CFR", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=888f2221-9278-4880-89c6-aac1ea918073&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Demand Planning", "S&OE", "O", "Pacing (SO KPIs of Comparable Customers)", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/b933264e-8168-7bf2-ad17-265fcc7e2c51?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["CS&L", "Orders", "O", "CS&L Order To Bill & Quiebre & CFR", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/410a1c02-0d6c-ab85-3a39-12e618d03cb1?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Demand Planning", "S&OE", "O", "Pacing (SO KPIs of Comparable Customers)", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/62fb2d22-86d7-d69e-056e-6bb4dd091b97?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["Demand Planning", "S&OE", "O", "S&OE – EY", ""],
-  ["Demand Planning", "Trade Stocks", "O", "Stock Analysis", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=831e30c7-7cf5-47ff-8a03-4cbb8d05c727&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Demand Planning", "Trade Stocks", "S", "Trade stock weekly", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=de5c1396-3b0a-4ddc-979e-7d9e632b7569&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Demand Planning", "Demand Review", "S", "SFA & SFB SI", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/reports/2660a294-c03e-4b85-a75e-9a7169f3ff60?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
-  ["Demand Planning", "Demand Review", "S", "Sanity Check", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=24db24df-5bef-44c8-a0d8-00ef48a0352a&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
-  ["Demand Planning", "Demand Review", "S", "SFA & SFB SO", "https://app.powerbi.com/Redirect?action=OpenReport&appId=3a040e3f-1233-4d92-a18c-940ac83ffbb0&reportObjectId=1d14f577-b18a-4afa-9d40-507a401fe3f5&ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&pbi_source=appShareLink&portalSessionId=ed2ab5f2-870a-44d6-85d3-ce59e1c81720"],
+  ["Demand Planning", "Trade Stocks", "O", "Stock Analysis", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/5c4f7831-de86-5eb3-a944-9d9bac97f0b8?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Demand Planning", "Trade Stocks", "S", "Trade stock weekly", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/33c19e0e-3a18-996b-fd9c-0da4adbc15bf?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Demand Planning", "Demand Review", "S", "SFA & SFB SI", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/20e76c9f-807d-4707-bcdd-222361fb10f2?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Demand Planning", "Demand Review", "S", "Sanity Check", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/3c18e51a-dbe2-b1f4-ff81-a1322bb10899?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["Demand Planning", "Demand Review", "S", "SFA & SFB SO", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/ce29d096-848d-8cd7-a540-6e530d6c6baf?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["Marketing", "Business Drivers", "S", "NPDs Strategic (o9)", ""],
   ["RGM", "Elasticity", "O", "Elasticity Tracker – RGM", ""],
-  ["RGM", "Performance", "O", "RGM Battleship", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/f6f22734-f3e7-410e-f155-039905fb4b7c?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["RGM", "Performance", "O", "RGM Battleship", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/337d381b-dc31-8851-3572-e0488e0bb073?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
   ["OSA Process", "SISO Coverage", "O", "Wacam Parameters / SISO Coverage", ""],
-  ["OSA Process", "Extrapolate", "A", "Extrapolado Tracker", "https://app.powerbi.com/groups/me/apps/3a040e3f-1233-4d92-a18c-940ac83ffbb0/web-contents/630f0f95-4683-c71d-d095-b86f944f632a?ctid=18a01ad8-9727-498a-a47d-17374c6fd9f7&experience=power-bi&clientSideAuth=0"],
+  ["OSA Process", "Extrapolate", "A", "Extrapolado Tracker", ""],
   ["OSA Process", "Usage Report", "O", "Indicadores de USO de OSA Matrix", ""],
   ["OSA Process", "Tickets OSA Assist", "O", "Ticketera OSA", ""]
 ];
@@ -539,6 +543,12 @@ var GLOSSARY = [
   { name: "Indicadores (KPIs)", desc: "Cómo se calcula cada indicador", url: "" },
   { name: "Procesos y subprocesos", desc: "Qué cubre cada área", url: "" }
 ];
+
+/* Tooltip de los subprocesos (aparece al pasar el mouse o enfocar con teclado sobre un subproceso del árbol).
+   SUB_TIPS: texto propio por subproceso, con la forma "Área / Subproceso": "texto". Los que no estén aquí usan SUB_TIP_DEFAULT.
+   Ejemplo: "Sales / Business Drivers": "Indicadores que explican el negocio" */
+var SUB_TIP_DEFAULT = "Prueba: Ingresa";
+var SUB_TIPS = {};
 
 /* Tipos: nombre visible, letra usada en ROWS y color de la etiqueta */
 var PROC = { operative: "Operativo", strategic: "Estratégico", analytical: "Analítico" };
@@ -609,6 +619,32 @@ function linkPart(url) {
 }
 
 /* =====================================================================
+   8c. TOOLTIP de los subprocesos: un solo globo reutilizado; sale sobre el nodo (o debajo si no hay espacio arriba)
+   ===================================================================== */
+var tipEl = document.createElement("div");
+tipEl.className = "tip"; tipEl.setAttribute("role", "tooltip");
+document.body.appendChild(tipEl);
+
+function showTip(node) {
+  tipEl.textContent = node.dataset.tip;
+  var r = node.getBoundingClientRect(), t = tipEl.getBoundingClientRect();
+  var left = Math.min(Math.max(8, r.left + r.width / 2 - t.width / 2), window.innerWidth - t.width - 8);
+  var top = r.top - t.height - 8;
+  if (top < 8) top = r.bottom + 8;
+  tipEl.style.left = left + "px"; tipEl.style.top = top + "px";
+  tipEl.classList.add("on");
+}
+function hideTip() { tipEl.classList.remove("on"); }
+
+["mouseover", "focusin"].forEach(function (ev) {
+  document.addEventListener(ev, function (e) { var n = e.target.closest ? e.target.closest(".node[data-tip]") : null; if (n) showTip(n); });
+});
+["mouseout", "focusout"].forEach(function (ev) {
+  document.addEventListener(ev, function (e) { if (e.target.closest && e.target.closest(".node[data-tip]")) hideTip(); });
+});
+window.addEventListener("scroll", hideTip, true);
+
+/* =====================================================================
    4. ÁRBOL INTERACTIVO (un solo árbol con dos raíces en la primera columna)
    Raíz "OSA Matrix"       →  Área → Subproceso → Reporte        (datos: ROWS)
    Raíz "Colaborations OSA" →  Reporte (directo, sin subprocesos) (datos: COLLAB_ROWS)
@@ -650,7 +686,7 @@ function createTree(root) {
       m.sub = { open: !!a, label: "Subproceso", q: "¿Cuál subproceso?", val: s ? s.name : "", clear: !!s, nodes: [] };
       if (a) {
         var maxS = maxOf(a.subs.map(function (x) { return x.reports.length; }));
-        m.sub.nodes = a.subs.map(function (x) { var on = !!s && s.name === x.name; return { kind: "node", col: "sub", id: x.name, key: "sub:" + a.id + "/" + x.name, name: x.name, count: x.reports.length, max: maxS, color: on ? ORANGE : NEUTRAL, selected: on }; });
+        m.sub.nodes = a.subs.map(function (x) { var on = !!s && s.name === x.name; return { kind: "node", col: "sub", id: x.name, key: "sub:" + a.id + "/" + x.name, name: x.name, count: x.reports.length, max: maxS, color: on ? ORANGE : NEUTRAL, selected: on, tip: SUB_TIPS[a.name + " / " + x.name] || SUB_TIP_DEFAULT }; });
       }
       m.report = { open: !!s, label: "Reporte", q: "Elija uno para abrir su dashboard", val: "", clear: false, nodes: reportNodes(a, s) };
     } else {
@@ -677,7 +713,7 @@ function createTree(root) {
         '<span class="bar"><i style="width:100%;background:' + legGrad(n.legend) + '"></i></span><span class="row"><span><span class="name">' + esc(n.name) + '</span><span class="ptags">' + legTags(n.legend) + '</span></span><span class="go">' + ARROW + '</span></span></a>';
     }
     var inner = '<span class="bar"><i style="width:' + pct + '%"></i></span><span class="name">' + esc(n.name) + '</span><span class="count">' + n.count + '</span>';
-    return '<button class="node' + (n.kind === "root" ? " root" : "") + (n.selected ? " sel" : "") + '" data-col="' + n.col + '" data-id="' + esc(n.id) + '" data-key="' + esc(n.key) + '" style="' + st + '" aria-pressed="' + !!n.selected + '">' + inner + '</button>';
+    return '<button class="node' + (n.kind === "root" ? " root" : "") + (n.selected ? " sel" : "") + '" data-col="' + n.col + '" data-id="' + esc(n.id) + '" data-key="' + esc(n.key) + '"' + (n.tip ? ' data-tip="' + esc(n.tip) + '"' : "") + ' style="' + st + '" aria-pressed="' + !!n.selected + '">' + inner + '</button>';
   }
 
   /* ----- 4.3 Ruta "Área › Subproceso" y botón Reiniciar (en el árbol plano solo se muestra el subproceso) ----- */
@@ -697,6 +733,7 @@ function createTree(root) {
 
   /* ----- 4.4 render(): repinta columnas, nodos y ruta según "sel" y redibuja las líneas. Se llama en cada clic ----- */
   function render(focusCol, silent) {
+    hideTip();
     var m = model();
     var a = getArea(), s = getSub();
     tree.style.setProperty("--ac", m.area.val ? ORANGE : BASE);
